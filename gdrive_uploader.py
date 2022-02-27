@@ -15,7 +15,6 @@ https://console.developers.google.com/apis/credentials/consent?referrer=search&p
 from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
 import os.path
-from audio_handler import get_audio_file_title
 
 
 class GDriveUploader:
@@ -117,8 +116,7 @@ class GDriveUploader:
         for child_name in folders[1:]:
             parent_id = self.get_child_id(parent_id, child_name)
 
-        # We're using the same naming conventions as for local folders, so same function
-        title = get_audio_file_title(self.files, self.work)
+        title = f'[{self.files.fandom.upper()}] {self.files.safe_title}'
 
         # drive.CreateFile does not actually upload the file, only creates the object
         # If the filder already exists, just get it

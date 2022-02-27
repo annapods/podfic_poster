@@ -14,10 +14,9 @@ from html_extractor import HTMLExtractor
 
 
 class WorkInfo:
-    """
-    All work info: ao3 work, tracker and dw
-    Calls to templates
-    """
+    """ All work info: ao3 work, tracker and dw
+    Calls to templates """
+
     default_values = {
         "Language": "English",
         "Work Text": "__WORK_TEXT",
@@ -29,7 +28,7 @@ class WorkInfo:
         "Notes at the beginning": "",
         "Notes at the end": "",
         "Add co-creators?": [("__URL", "__PSEUD")],
-        "Cover Artist": [],  # TODO add cover artist to template
+        "Cover Artist": [],
         "Work Type": "podfic",
         "Media Category": "__MEDIA_CATEGORY",
         "Audio Length": "__AUDIO_LENGTH",
@@ -46,11 +45,10 @@ class WorkInfo:
         "Stickers": False
     }
 
+
     def __init__(self, file_info, mode="saved", verbose=True):
-        """
-        mode can be saved (from yaml) or extract (from html files using HTMLExtractor,
-        with default values)
-        """
+        """ mode can be saved (from yaml) or extract (from html files using HTMLExtractor,
+        with default values) """
         self.verbose = verbose
         self.files = file_info
         assert mode in ["saved", "extract"], "/!\\ that is not a valid mode of work info creation"
@@ -61,24 +59,29 @@ class WorkInfo:
             self.add_default_fields()
 
         if mode == "saved":
-            with open(self.files.yaml_info, 'r') as f:
-                self.info = yaml.safe_load(f)
+            with open(self.files.yaml_info, 'r') as file:
+                self.info = yaml.safe_load(file)
+
 
     def vprint(self, string, end="\n"):
         """ Print if verbose """
         if self.verbose:
             print(string, end=end)
 
+
     def save_info(self):
+        """ Saves the info to the yaml info file """
         with open(self.files.yaml_info, 'w') as f:
             yaml.safe_dump(self.info, f)
 
     def update_info(self, category, content):
+        """ Updates one of the fields and saves the info to the file """
         assert category in self.info, "/!\\ work info category doesn't exist"
         self.info[category] = content
         self.save_info()
 
     def add_default_fields(self):
+        """ Adds all missing default fields to the info """
         for key, value in WorkInfo.default_values.items():
             if key not in self.info:
                 self.info[key] = value
@@ -87,45 +90,46 @@ class WorkInfo:
     ### Additional tags
 
     def add_podfic_tags(self):
+        """ Adds the missing podfic tags to the additional tags """
         for tag in [
                 "Podfic", "Audio Format: MP3", "Audio Format: Streaming"
             ] + [self.get_audio_length_tag()]:            
             if tag not in self.info["Additional Tags"]:
                 self.info["Additional Tags"].append(tag)
 
+
     def get_audio_length_tag(self):
+        """ Returns the adequate audio length additional tag """
+
         assert self.info["Audio Length"] != WorkInfo.default_values['Audio Length']
-        h, m, s = self.info["Audio Length"].split(":")
-        h = int(h)
-        m = int(m)
-        s = int(s)
-        if h >= 20:             return "Podfic Length: Over 20 Hours"
-        if h >= 15:             return "Podfic Length: 15-20 Hours"
-        if h >= 10:             return "Podfic Length: 10-15 Hours"
-        if h >= 7:              return "Podfic Length: 7-10 Hours"
-        if h >= 6:              return "Podfic Length: 6-7 Hours"
-        if h >= 5:              return "Podfic Length: 5-6 Hours"
-        if h >= 4 and m >= 30:  return "Podfic Length: 4.5-5 Hours"
-        if h >= 4:              return "Podfic Length: 4-4.5 Hours" 
-        if h >= 3 and m >= 30:  return "Podfic Length: 3.5-4 Hours"
-        if h >= 3:              return "Podfic Length: 3-3.5 Hours"
-        if h >= 2 and m >= 30:  return "Podfic Length: 2.5-3 Hours"
-        if h >= 2:              return "Podfic Length: 2-2.5 Hours"
-        if h >= 1 and m >= 30:  return "Podfic Length: 1.5-2 Hours"
-        if h >= 1:              return "Podfic Length: 1-1.5 Hours"
-        if m >= 45:             return "Podfic Length: 45-60 Minutes"
-        if m >= 30:             return "Podfic Length: 30-45 Minutes"
-        if m >= 20:             return "Podfic Length: 20-30 Minutes"
-        if m >= 10:             return "Podfic Length: 10-20 Minutes"
-        else:                   return "Podfic Length: 0-10 Minutes"
+        hours, minutes, seconds = self.info["Audio Length"].split(":")
+        hours, minutes = int(hours), int(minutes)
 
+        conditions = (
+            (20,  0, "Podfic Length: Over 20 Hours"),
+            (15,  0, "Podfic Length: 15-20 Hours"),
+            (10,  0, "Podfic Length: 10-15 Hours"),
+            ( 7,  0, "Podfic Length: 7-10 Hours"),
+            ( 6,  0, "Podfic Length: 6-7 Hours"),
+            ( 5,  0, "Podfic Length: 5-6 Hours"),
+            ( 4, 30, "Podfic Length: 4.5-5 Hours"),
+            ( 4,  0, "Podfic Length: 4-4.5 Hours"),
+            ( 3, 30, "Podfic Length: 3.5-4 Hours"),
+            ( 3,  0, "Podfic Length: 3-3.5 Hours"),
+            ( 2, 30, "Podfic Length: 2.5-3 Hours"),
+            ( 2,  0, "Podfic Length: 2-2.5 Hours"),
+            ( 1, 30, "Podfic Length: 1.5-2 Hours"),
+            ( 1,  0, "Podfic Length: 1-1.5 Hours"),
+            ( 0, 45, "Podfic Length: 45-60 Minutes"),
+            ( 0, 30, "Podfic Length: 30-45 Minutes"),
+            ( 0, 20, "Podfic Length: 20-30 Minutes"),
+            ( 0, 10, "Podfic Length: 10-20 Minutes"),
+            ( 0,  0, "Podfic Length: 0-10 Minutes")
+        )
 
-    ### Title
-
-    def add_podfic_to_title(self, media_type="podfic"):
-        start = f'[{media_type}]'
-        if not self.info["Work Title"].startswith(start):
-            self.info["Work Title"] = f'{start} {self.info["Work Title"]}'
+        for (min_hours, min_minutes, tag) in conditions:
+            if hours >= min_hours and minutes >= min_minutes:
+                return tag
 
 
     ### Ao3 work text and summary
@@ -134,7 +138,6 @@ class WorkInfo:
         self.vprint(f'Creating ao3 template...', end=" ")
         self.check_and_format_info()
         self.add_podfic_tags()
-        self.add_podfic_to_title()
 
         template = Ao3Template(self.info)
         self.info["Summary"] = template.summary
@@ -142,7 +145,8 @@ class WorkInfo:
         self.save_info()
 
         template = {}
-        for key in ["Work Title", "Fandoms", "Relationships",
+        template["Work Title"] = f'[{self.info["Work Type"]}] {self.files.title}'
+        for key in ["Fandoms", "Relationships",
             "Characters", "Additional Tags", "Creator/Pseud(s)", "Add co-creators?",
             "Summary", "Notes at the beginning", "Notes at the end", "Language", "Work Text",
             "Parent Work URL", "Rating", "Archive Warnings", "Categories"]:
@@ -183,9 +187,9 @@ class WorkInfo:
         """
         Double checks everything is ready to fill the templates
         """
-        at_most_one_categories = ["Summary", "Rating", "IA Link", "GDrive Link", "Work Title",
+        at_most_one_categories = ["Summary", "Rating", "IA Link", "GDrive Link",
             "Summary", "Audio Length"]
-        at_least_one_categories = ["Work Title", "Summary", "Rating", "Parent Work URL",
+        at_least_one_categories = ["Summary", "Rating", "Parent Work URL",
             "IA Link", "IA Streaming Links", "GDrive Link", "Audio Length", "Archive Warnings",
             "Fandoms"]
         not_default_categories = ["Audio Length", "Media Category", "IA Link", "IA Cover Link",

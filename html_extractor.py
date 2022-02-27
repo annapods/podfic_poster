@@ -131,8 +131,6 @@ class HTMLExtractor:
             "Characters": self.get_tags("Character"),
             "Additional Tags": self.get_tags("Additional Tags")
         }
-        info["Work Title"] = info["Parent Work Title"] + info["Series"]
-        print(info["Parent Work Title"])
 
         self.vprint(f'done!')
         return info

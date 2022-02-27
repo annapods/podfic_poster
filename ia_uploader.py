@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from internetarchive import upload, get_item, modify_metadata
+from internetarchive import upload, get_item
 import re
 import os
+from random import randint
+
+
+def identifier_available(identifier):
+    """ Checks/returns availability of item identifier """
+    item = get_item(identifier)
+    return not item.exists
 
 
 class IAUploader:
@@ -30,17 +37,11 @@ class IAUploader:
             print(string, end=end)
 
 
-    def identifier_available(identifier):
-        """ Checks/returns availability of item identifier """
-        item = get_item(identifier)
-        return not item.exists
-
-
     def set_identifier(self, identifier):
         """ Sets the ia item identifier while checking for availability """
 
         # If the item identifier doesn't exist yet, keep it
-        if IAUploader.identifier_available(identifier):
+        if identifier_available(identifier):
             self.identifier = identifier
 
         # Else, ask the user whether to create a new item or use the existing one
@@ -57,11 +58,10 @@ class IAUploader:
 
         # If randomly generated, adds a digit to the end of the previous identifier
                 else:
-                    import random
-                    i = random.randint(0, 10)
-                    identifier = f"{identifier[:99]}{i}"
+                    digit = randint(0, 10)
+                    identifier = f"{identifier[:99]}{digit}"
                     self.set_identifier(identifier)
-        
+
         # Save the link to the item
         self.work.info.update_info("IA Link", "https://archive.org/details/<identifier>")
 
@@ -83,20 +83,21 @@ class IAUploader:
         # Replace anything not ASCII by -
         identifier = re.sub(r'[\W]', '-', identifier)
         while re.findall(r'--', identifier):
-            name = re.sub(r'--', '-', identifier)
+            identifier = re.sub(r'--', '-', identifier)
 
-        assert len(identifier) >= 5, '/!\\ internet archive identifier cannot be shorter than 5 characters'
+        assert len(identifier) >= 5, \
+            '/!\\ internet archive identifier cannot be shorter than 5 characters'
         return identifier[:100]
 
 
     def upload_file(self, file_path):
         """ Uploads the given file to the ia item """
-        r = upload(
+        request = upload(
             self.identifier,
             files = [file_path],
             metadata = self.metadata
         )
-        self.vprint(f'{r[0].status_code} - {file_path}')
+        self.vprint(f'{request[0].status_code} - {file_path}')
 
 
     def upload_audio(self):
@@ -136,8 +137,8 @@ class IAUploader:
         self.vprint("Adding podfic link to ia...", end=" ")
         assert "Podfic Link" in self.work.info \
             and not self.work.info["Podfic Link"].startswith("__"), "/!\\ no ao3 link?"
-        description = f'<strong>Link to podfic:</strong> ' \
+        description = '<strong>Link to podfic:</strong> ' \
             + f'<a href="{self.work.info["Podfic Link"]}"></a>'
         item = get_item(self.identifier)
-        r = item.modify_metadata(metadata={'description': description})
+        _ = item.modify_metadata(metadata={'description': description})
         self.vprint("done!")

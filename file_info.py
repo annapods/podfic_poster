@@ -32,13 +32,13 @@ class FileInfo:
 
         # If the folder doesn't exist, offer to create it
         else:
-            print("/!\\ that folder doesn't exist yet")
+            print(f"/!\\ that folder doesn't exist yet: {self.folder}")
             choice = input("create it? nothing for yes, quit for quit, whatever else to go back")
             if not choice:
                 os.mkdir(self.folder)
         # Or quit
                 if choice == "quit":
-                    quit()
+                    sys.exit()
         # Or go back and input another fandom and project abreviation
             else:
                 self = FileInfo(verbose=verbose)
@@ -63,6 +63,7 @@ class FileInfo:
     def get_project(self):
         """ Returns the project abbreviation, created from the title initials """
         title = self.title.lower()
+        title = re.sub(r'[^\w^ ]', '', title)
         words = title.split(" ")
         initials = [word[0] for word in words]
         project = "".join(initials)
@@ -71,7 +72,7 @@ class FileInfo:
 
     def get_folder(self):
         """ Returns the path to the project folder, ex: "wips_folder/fandom - project" """
-        return os.path.join(FileInfo.wips_folder, f"{self.fandom} - {self.project_abr}")
+        return os.path.join(FileInfo.wips_folder, f"{self.fandom} - {self.project}")
         
 
     def update_file_paths(self):

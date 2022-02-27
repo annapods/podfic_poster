@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Command line program (TODO)
-"""
+""" Command line program """
 
 from argparse import ArgumentParser
 from html_downloader import HTMLDownloader
@@ -22,7 +20,9 @@ def new(link=TEST_URL, verbose=True):
     - downloading html
     - extracting data from it
     - creating a few files """
-    files = FileInfo(fandom='hrpf', project='nbsldmstjf', verbose=verbose)
+    files = FileInfo(fandom='hrpf',
+        title="NYT Best Seller List Don't Mean Shit (To Joel Farabee)",
+        verbose=verbose)
 
     # Downloading parent work html
     if not link:
@@ -83,7 +83,7 @@ if __name__ == "__main__":
         action='store_true', required=False)
     args = parser.parse_args()
 
-    verbose = args.verbose
+    verbose = True  # args.verbose  # TODO change
 
     if args.mode == "new":
         new(verbose=verbose)
