@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-y
-"""
-Download parent work html from ao3 to the destination folder
-Wrapping functions for ao3downloader, mostly, with added decoding and file moving
-"""
 
 import os
 import json
@@ -13,6 +9,8 @@ from ao3downloader.fileio import get_valid_filename
 
 
 class HTMLDownloader:
+    """ Download parent work html from ao3 to the destination folder 
+    Wrapping up ao3downloader, mostly, with some additional file moving """
     def __init__(self, verbose=True):
         self.verbose = verbose
         self.log_file = os.path.join(DOWNLOAD_FOLDER_NAME, LOG_FILE_NAME)
@@ -27,10 +25,8 @@ class HTMLDownloader:
 
 
     def get_log(self):
-        """
-        Using logfile to get back the log, deleting it afterward
-        /!\ That means you can't use it twice (TODO that might be a bad idea...)
-        """
+        """ Using logfile to get back the log, deleting it afterward
+        /!\ That means you can't use it twice (TODO that might be a bad idea...) """
         assert not self.logs, "/!\\ already loaded log!"
         with open(self.log_file, 'r') as json_file:
             self.logs = list(json_file)
@@ -38,9 +34,7 @@ class HTMLDownloader:
 
 
     def get_file_names(self):
-        """
-        Get the names of the html files from the log
-        """
+        """ Get the names of the html files from the log """
         self.file_names = []
         for log in self.logs:
             log = json.loads(log)
@@ -52,18 +46,14 @@ class HTMLDownloader:
 
 
     def move_html_files(self, folder, download_folder=DOWNLOAD_FOLDER_NAME):
-        """
-        Moves the html files to the pod folder
-        """
+        """ Moves the html files to the pod folder """
         for file_name in self.file_names:
             work_file = os.path.join(download_folder, file_name)
             shutil.move(work_file, os.path.join(folder, file_name))
 
 
     def download_html(self, link, destination_folder):
-        """
-        Pipeline!
-        """
+        """ Pipeline! """
         self.vprint("Downloading html...")
         ao3download(link=link, filetype='HTML', subfolders=False, pages=0, login=True)
         self.get_log()

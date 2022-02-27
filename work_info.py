@@ -56,7 +56,7 @@ class WorkInfo:
         assert mode in ["saved", "extract"], "/!\\ that is not a valid mode of work info creation"
 
         if mode == "extract":
-            extractor = HTMLExtractor(file_info.html_fic, verbose)
+            extractor = HTMLExtractor(file_info.html_fics, verbose)
             self.info = extractor.extract_html_data()
             self.add_default_fields()
 
@@ -74,6 +74,7 @@ class WorkInfo:
             yaml.safe_dump(self.info, f)
 
     def update_info(self, category, content):
+        assert category in self.info, "/!\\ work info category doesn't exist"
         self.info[category] = content
         self.save_info()
 

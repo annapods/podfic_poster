@@ -49,20 +49,22 @@ def post(verbose=True):
     audio.update_metadata()
     audio.save_audio_length()
 
-    # Uploading to hosting
+    # Uploading to gdrive and ia
     gdrive_uploader = GDriveUploader(files, work, verbose=verbose)
     gdrive_uploader.upload_audio()
+    gdrive_uploader.upload_cover()
     ia_uploader = IAUploader(files, work, verbose=verbose)
     ia_uploader.upload_audio()
+    ia_uploader.upload_cover()
 
     # Posting to ao3
     work.create_ao3_template()
     ao3_poster = Ao3Poster(files, work, verbose=verbose)
     ao3_poster.post_podfic()
-    gdrive_uploader.upload_cover()
+
+    # Uploading ao3 info to gdrive and ia
     gdrive_uploader.upload_info()
-    ia_uploader.add_description()
-    ia_uploader.upload_cover()
+    ia_uploader.update_description()
     ia_uploader.upload_info()
 
     # Posting to dw

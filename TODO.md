@@ -2,9 +2,7 @@
 [x] extract data
 [x] fill templates
 [X] edit audio metadata
-[x] test post (templates) with hand-written test data
-[x] upload to gdrive (GDrive Link)
-[-] fix encoding issue in html_extractor
+[x] upload to gdrive
 [-] upload to ia
     [-] upload
     [-] get shareable links (IA Cover Link, IA Streaming Links, IA Link)

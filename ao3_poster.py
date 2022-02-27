@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-TODO
-"""
 
 
 class Ao3Poster:
+    """ Ao3 posting helper! """
+
     def __init__(self, file_info, work_info, verbose=True):
         self.verbose = verbose
         self.files = file_info
@@ -16,6 +15,7 @@ class Ao3Poster:
             print(string, end=end)
 
     def post_podfic(self):
+        """ TODO """
         self.vprint("Drafting podfic post to ao3...", end=" ")
         pass
         self.vprint("done!")

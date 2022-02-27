@@ -58,21 +58,21 @@ class GDriveUploader:
 
     def upload_audio(self):
         """ Uploads audio files (mp3 only) to the project's gdrive folder """
-        self.vprint("Uploading podfic files to gdrive...", end=" ")
-        for path in self.files.mp3_final:
+        self.vprint("Uploading podfic files to gdrive...")
+        for path in self.files.mp3_finals:
             self.upload_file(path)
         self.vprint("done!")
 
     def upload_cover(self):
         """ Uploads cover files (all png) to the project's gdrive folder """
-        self.vprint("Uploading podfic cover to gdrive...", end=" ")
-        for path in self.files.png:
+        self.vprint("Uploading podfic cover to gdrive...")
+        for path in self.files.pngs:
             self.upload_file(path)
         self.vprint("done!")
 
     def upload_info(self):
         """ Uploads ao3 post info (csv file) to the project's gdrive folder """
-        self.vprint("Uploading podfic info to gdrive...", end=" ")
+        self.vprint("Uploading podfic info to gdrive...")
         self.upload_file(self.files.ao3)
         self.vprint("done!")
 
