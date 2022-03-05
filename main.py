@@ -45,19 +45,19 @@ def post(verbose=True):
 
     # Editing audio files for names and metadata
     audio = AudioHandler(project, work, verbose=verbose)
-    audio.add_cover_art()
-    audio.rename_wip_audio_files()
-    audio.update_metadata()
-    audio.save_audio_length()
-    project.update_file_paths()
+    # audio.add_cover_art()
+    # audio.rename_wip_audio_files()
+    # audio.update_metadata()
+    # audio.save_audio_length()
+    # project.update_file_paths()
 
     # Uploading to gdrive and ia
     gdrive_uploader = GDriveUploader(project, work, verbose=verbose)
-    gdrive_uploader.upload_audio()
-    gdrive_uploader.upload_cover()
+    # gdrive_uploader.upload_audio()
+    # gdrive_uploader.upload_cover()
     ia_uploader = IAUploader(project, work, verbose=verbose)
-    ia_uploader.upload_audio()
-    ia_uploader.upload_cover()
+    # ia_uploader.upload_audio()
+    # ia_uploader.upload_cover()
 
     # Posting to ao3
     work.create_ao3_template()

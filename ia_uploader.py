@@ -23,7 +23,7 @@ class IAUploader:
         self._work = work_info
         self._set_identifier(self._generate_identifier())
         self._metadata = {
-            'collection': 'Community Audio',
+            'collection': 'opensource_audio',
             'title': self._project.title.raw,
             'mediatype': 'audio',
             'creator': 'Annapods',

@@ -86,15 +86,8 @@ class ProjectTracker:
         self._verbose = verbose
 
         self.fandom = fandom if fandom else input("fandom abr: ")
-        
-        raw_title = title if title else input("project title: ")
-        safe_title = self.get_safe_title(raw_title)
-        title_abr = self.get_title_abr(raw_title)
-        TitleTracker = namedtuple('TitleTracker', ['raw', 'safe_for_path', 'abr'])
-        self.title = TitleTracker(raw=raw_title, safe_for_path=safe_title, abr=title_abr)
-
-        self.folder = folder if folder else self._get_folder()
-        self._check_folder()
+        self.title = self._get_title(title)
+        self.folder = self._get_folder(folder)
 
         self.files = FileTracker()
         self.update_file_paths()
@@ -106,82 +99,92 @@ class ProjectTracker:
             print(string, end=end)
 
 
-    def _check_folder(self):
-        """ Checks which folder to use, creating it if necessary
-        -> yes
-            -> use exising folder or input name?
-        -> no
-            -> create or quit? """
+    def _get_folder(self, folder=""):
+        """ Returns the path to the project folder, ex: "wips_folder/fandom - project"
+        Gets user input on whether to create or reuse a folder
+        WARNING gotta do the title and fandom stuff first """
 
-        # Check that the folder exists
-        if os.path.exists(self.folder):
+        folder = folder if folder \
+            else os.path.join(ProjectTracker.wips_folder, f"{self.fandom} - {self.title.abr}")
 
-        # If yes, ask for confirmation
-            choice = input(f"use existing folder {self.folder}?" \
-                + " nothing for yes, quit for quit, new name otherwise")
+        if os.path.exists(folder):
+            print(f"found a project folder! {folder}")
+            print("you can:")
+            print("- use it (hit return without typing anything)")
+            print("- quit (type quit and then hit return)")
+            print("- use another folder (type the path to the folder then hit return)")
+            choice = input()
+            if choice == "":
+                return folder
             if choice == "quit":
-                print("quitting!")  # TODO
+                print("bye!")
                 sys.exit()
-            elif choice != "":
-                self.folder = choice
-                self._check_folder()
-            else:
-                return
+                return None
+            self._get_folder(choice)
 
-        # If the folder doesn't exist, offer to create it
         else:
-            print(f"/!\\ that folder doesn't exist yet: {self.folder}")
-            choice = input("create it? nothing for yes, quit for quit")
-            if not choice:
-                os.mkdir(self.folder)
-
-        # Or quit, if you want to go back and input another fandom and title
-            elif choice == "quit":
+            print(f"/!\\ that folder doesn't exist yet: {folder}")
+            print("you can:")
+            print("- create it (hit return)")
+            print("- quit (type quit)")
+            print("- use another folder path (type it into the terminal")
+            choice = input()
+            if choice == "":
+                os.mkdir(folder)
+                return folder
+            if choice == "quit":
+                print("bye!")
                 sys.exit()
+                return None
+            return self._get_folder(choice)
 
 
-    def get_safe_title(self, title):
-        """ Returns a version of the title that is safe for paths """
-        title = title.replace(".", ",")
-        title = title.replace("/", " ")
-        return title
+    def _get_title(self, raw_title=""):
+        """ Generates safe_for_path and abr titles, returning a named tuple with all versions """
 
+        def get_safe_title(title):
+            """ Returns a version of the title that is safe for paths """
+            title = title.replace(".", ",")
+            title = title.replace("/", " ")
+            return title
 
-    def get_title_abr(self, title):
-        """ Returns the project abbreviation, created from the title initials """
-        title = title.lower()
-        title = re.sub(r'[^\w^ ]', '', title)
-        words = title.split(" ")
-        initials = [word[0] for word in words]
-        abr = "".join(initials)
-        return abr
+        def get_title_abr(title):
+            """ Returns the project abbreviation, created from the title initials """
+            title = title.lower()
+            title = re.sub(r'[^\w^ ]', '', title)
+            words = title.split(" ")
+            initials = [word[0] for word in words]
+            abr = "".join(initials)
+            return abr
 
-
-    def _get_folder(self):
-        """ Returns the path to the project folder, ex: "wips_folder/fandom - project" """
-        return os.path.join(ProjectTracker.wips_folder, f"{self.fandom} - {self.title.abr}")
+        raw_title = raw_title if raw_title else input("project title: ")
+        safe_title = get_safe_title(raw_title)
+        title_abr = get_title_abr(raw_title)
+        TitleTracker = namedtuple('TitleTracker', ['raw', 'safe_for_path', 'abr'])
+        return TitleTracker(raw=raw_title, safe_for_path=safe_title, abr=title_abr)
 
 
     def update_file_paths(self):
         """ Saves the paths to the various project files to the tracker """
+
         self.files.info = os.path.join(self.folder, f'{self.title.abr} info.yaml')
         self.files.template.dw = os.path.join(self.folder, f'{self.title.abr} dw.txt')
         self.files.template.ao3 = os.path.join(self.folder, f'{self.title.abr} ao3.csv')
-        self.files.audio.compressed.unformatted = self.get_files(self.title.abr, ".mp3")
-        self.files.audio.raw.unformatted = self.get_files(self.title.abr, ".wav")
-        self.files.audio.compressed.formatted = self.get_files(self.title.safe_for_path, ".mp3")
-        self.files.audio.raw.formatted = self.get_files(self.title.safe_for_path, ".wav")
-        self.files.cover.compressed = self.get_files(self.title.abr, ".png")
-        self.files.cover.raw = self.get_files(self.title.abr, ".svg")
-        self.files.fic = self.get_files(".html")
+        
+        def get_files(contains="", endswith="", folder=self.folder):
+            """ Looks for files in the given folder which name contains and ends with the
+            given strings """
+            files = [
+                os.path.join(folder, file)
+                for file in os.listdir(folder)
+                if contains in file and file.endswith(endswith)
+            ]
+            return files
 
-
-    def get_files(self, contains="", endswith=""):
-        """ Looks for files in the given folder which name contains and ends with the
-        given strings """
-        files = [
-            os.path.join(self.folder, file)
-            for file in os.listdir(self.folder)
-            if re.match(f".*{contains}.*{endswith}$", file)
-        ]
-        return files
+        self.files.audio.compressed.unformatted = get_files(self.title.abr, ".mp3")
+        self.files.audio.raw.unformatted = get_files(self.title.abr, ".wav")
+        self.files.audio.compressed.formatted = get_files(self.title.safe_for_path, ".mp3")
+        self.files.audio.raw.formatted = get_files(self.title.safe_for_path, ".wav")
+        self.files.cover.compressed = get_files(self.title.abr, ".png")
+        self.files.cover.raw = get_files(self.title.abr, ".svg")
+        self.files.fic = get_files(endswith=".html")

@@ -119,7 +119,6 @@ class AudioHandler:
 
         length = f'{pad_time(hours)}:{pad_time(minutes)}:{pad_time(seconds)}'
         self._work.update_info("Audio Length", length)
-        self._work.save_info()
 
 
     def add_cover_art(self):
