@@ -1,30 +1,30 @@
 # -*- coding: utf-8 -*-
+""" TODO test main? """
 
-from internetarchive import upload, get_item
 import re
 import os
-from random import randint
-
-
-def identifier_available(identifier):
-    """ Checks/returns availability of item identifier """
-    item = get_item(identifier)
-    return not item.exists
+import sys
+from internetarchive import upload, get_item
 
 
 class IAUploader:
     """ Internet Archive uploading helper!
-    Uses the official internetarchive API """
+    Uses the official internetarchive API
+    
+    You can call:
+    - upload_audio
+    - upload_cover
+    - upload_info
+    - update_descrition """
 
     def __init__(self, project_info, work_info, verbose=True):
         self._verbose = verbose
-        self._project = file_info
+        self._project = project_info
         self._work = work_info
-        self.set_identifier(self.generate_identifier())
-        title = self.get_title()
-        self.metadata = {
+        self._set_identifier(self._generate_identifier())
+        self._metadata = {
             'collection': 'Community Audio',
-            'title': title,
+            'title': self._project.title.raw,
             'mediatype': 'audio',
             'creator': 'Annapods',
             'subject': 'podfic',
@@ -37,43 +37,42 @@ class IAUploader:
             print(string, end=end)
 
 
-    def set_identifier(self, identifier):
+    @staticmethod
+    def _identifier_available(identifier):
+        """ Checks/returns availability of item identifier """
+        item = get_item(identifier)
+        return not item.exists
+
+
+    def _set_identifier(self, identifier):
         """ Sets the ia item identifier while checking for availability """
 
-        # If the item identifier doesn't exist yet, keep it
-        if identifier_available(identifier):
-            self.identifier = identifier
+        if IAUploader._identifier_available(identifier):
+            self._identifier = identifier
 
-        # Else, ask the user whether to create a new item or use the existing one
         else:
             print(f"/!\\ an item with the same name already exists ({identifier})")
-            if not input("do you want to add to this existing item? nothing for yes"):
-                self.identifier = identifier
-
-        # If new, then ask for another identifier
+            print("you can:")
+            print("- add to the existing item (hit return)")
+            print("- choose a new identifier (input the chosen identifier)")
+            new = input()
+            if new == "":
+                self._identifier = identifier
             else:
-                new = input("want to pick? nothing for no/generating a random one")
-                if new:
-                    self.set_identifier(new)
-
-        # If randomly generated, adds a digit to the end of the previous identifier
+                print(f"sure you want to create a new item {new}? nothing for yes")
+                choice = input()
+                if choice == "":
+                    self._set_identifier(new)
                 else:
-                    digit = randint(0, 10)
-                    identifier = f"{identifier[:99]}{digit}"
-                    self.set_identifier(identifier)
+                    self._set_identifier(identifier)
 
-        # Save the link to the item
-        self._work.update_info("IA Link", "https://archive.org/details/<identifier>")
+        # Save the link to the item in the work info
+        self._work.update_info("IA Link", f"https://archive.org/details/{self._identifier}")
 
 
-    def get_title(self):
-        """ Returns the title without the [podfic] """
-        return re.sub('[*] ', '', self._work.info["Work Title"])
-
-
-    def generate_identifier(self):
+    def _generate_identifier(self):
         """ Generates and returns an ia item identifier based on fandom and work title """
-        title = self.get_title()
+        title = self._project.title.raw
         fandom = self._project.fandom
 
         # Concatenate fandom and title
@@ -85,17 +84,26 @@ class IAUploader:
         while re.findall(r'--', identifier):
             identifier = re.sub(r'--', '-', identifier)
 
-        assert len(identifier) >= 5, \
-            '/!\\ internet archive identifier cannot be shorter than 5 characters'
+        while len(identifier) <= 5:
+            print(f"/!\\ automatically generated identifier {identifier} is too short!")
+            print("you can:")
+            print("- quit (hit return)")
+            print("- input a new one (input it now)")
+            new = input()
+            if new == "":
+                sys.exit()
+            else:
+                identifier = new
+
         return identifier[:100]
 
 
-    def upload_file(self, file_path):
+    def _upload_file(self, file_path):
         """ Uploads the given file to the ia item """
         request = upload(
-            self.identifier,
+            self._identifier,
             files = [file_path],
-            metadata = self.metadata
+            metadata = self._metadata
         )
         self._vprint(f'{request[0].status_code} - {file_path}')
 
@@ -104,10 +112,11 @@ class IAUploader:
         """ Uploads audio files (mp3 and wav) to the ia item
         Also saves the streaming links to the work info """
         self._vprint("Uploading podfic files to ia...")
-        for path in self._project.files.audio.compressed.formatted + self._project.files.audio.raw.formatted:
-            self.upload_file(path)
+        for path in self._project.files.audio.compressed.formatted + \
+            self._project.files.audio.raw.formatted:
+            self._upload_file(path)
         links = ["https://archive.org/download/" \
-            + f"{self.identifier}/{os.path.basename(path)}"
+            + f"{self._identifier}/{os.path.basename(path)}"
             for path in self._project.files.audio.compressed.formatted]
         self._work.update_info("IA Streaming Links", links)
         self._vprint("done!")
@@ -118,9 +127,9 @@ class IAUploader:
         Also saves the cover link to the work info """
         self._vprint("Uploading cover art to ia...")
         for path in self._project.files.cover.compressed + self._project.files.cover.raw:
-            self.upload_file(path)
+            self._upload_file(path)
         link = "https://archive.org/download/" \
-            + f"{self.identifier}/{os.path.basename(self._project.files.cover.compressed[0])}"
+            + f"{self._identifier}/{os.path.basename(self._project.files.cover.compressed[0])}"
         self._work.update_info("IA Cover Link", link)
         self._vprint("done!")
 
@@ -128,17 +137,19 @@ class IAUploader:
     def upload_info(self):
         """ Uploads the info file (ao3 csv) to the ia item """
         self._vprint("Uploading podfic info to ia...")
-        self.upload_file(self._project.files.template.ao3)
+        self._upload_file(self._project.files.template.ao3)
         self._vprint("done!")
 
 
     def update_description(self):
         """ Updates item description with ao3 link """
         self._vprint("Adding podfic link to ia...", end=" ")
+
         assert "Podfic Link" in self._work.info \
-            and not self._work.info["Podfic Link"].startswith("__"), "/!\\ no ao3 link?"
+            and not self._work.info["Podfic Link"].startswith("__"), "/!\ no ao3 link yet?"
+
         description = '<strong>Link to podfic:</strong> ' \
             + f'<a href="{self._work.info["Podfic Link"]}"></a>'
-        item = get_item(self.identifier)
+        item = get_item(self._identifier)
         _ = item.modify_metadata(metadata={'description': description})
         self._vprint("done!")

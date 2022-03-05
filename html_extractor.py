@@ -15,11 +15,12 @@ def remove_dup(list_of_items):
 
 
 class HTMLExtractor:
-    """ Data extraction from downloaded ao3 html files using regex """
+    """ Data extraction from downloaded ao3 html files using regex
+    Use extract_html_data to get the info """
 
     def __init__(self, html_file_paths, verbose=True):
         self._verbose = verbose
-        self.load_html(html_file_paths)
+        self._load_html(html_file_paths)
 
 
     def _vprint(self, string, end="\n"):
@@ -28,7 +29,7 @@ class HTMLExtractor:
             print(string, end=end)
 
 
-    def load_html(self, file_paths):
+    def _load_html(self, file_paths):
         """ Loads html files into html_works attribute """
 
         def decode_func(html_string):
@@ -50,7 +51,7 @@ class HTMLExtractor:
                 self._html_works.append(decode_func(file.read()))
 
 
-    def get_series(self):
+    def _get_series(self):
         """ Extracts and returns series titles """
         regex = r"""<dt>Series:<\/dt>
         <dd>Part [0-9]+ of
@@ -60,7 +61,7 @@ class HTMLExtractor:
         return series
 
 
-    def get_authors(self):
+    def _get_authors(self):
         """ Extracts and returns authors (url, pseud) """
         regex = r"""<a rel="author" href="(.*?)">(.*?)<\/a>"""
         authors = [re.findall(regex, work) for work in self._html_works]
@@ -68,14 +69,14 @@ class HTMLExtractor:
         return authors
 
 
-    def get_titles(self):
+    def _get_titles(self):
         """ Extracts and returns fic titles """
         regex = r"<h1>(.*?)<\/h1>"
         titles = [re.search(regex, work).group()[4:-5] for work in self._html_works]
         return titles
 
 
-    def get_wordcount(self):
+    def _get_wordcount(self):
         """ Extracts, sums up and returns total wordcount """
         regex = r"""<dt>Stats:<\/dt>
       <dd>
@@ -86,7 +87,7 @@ class HTMLExtractor:
         return sum(wordcounts)
 
 
-    def get_summaries(self):
+    def _get_summaries(self):
         """ Extracts and returns summaries """
         regex = r"""<p>Summary<\/p>
       <blockquote class="userstuff"><p>(.*?)<\/p><\/blockquote>"""
@@ -94,7 +95,7 @@ class HTMLExtractor:
         return summaries
 
 
-    def get_tags(self, category):
+    def _get_tags(self, category):
         """ Extracts and returns tags for the given category """
         regex = fr"""<dt>{category}:<\/dt>
           <dd>(.*?)<\/dd>"""
@@ -105,7 +106,7 @@ class HTMLExtractor:
         return tags
 
 
-    def get_urls(self):
+    def _get_urls(self):
         """ Extracts and returns work urls """
         regex = r"""Posted originally on the <a href="http:\/\/archiveofourown.org\/">""" \
             + r"""Archive of Our Own<\/a> at <a href="(.*?)">"""
@@ -117,20 +118,20 @@ class HTMLExtractor:
         """ Extracts and returns all info """
         self._vprint('Extracting data from parent work(s) html file(s)...', end=" ")
         info = {
-            "Parent Work URL": self.get_urls(),
-            "Parent Work Title": self.get_titles(),
-            "Writer": self.get_authors(),
-            "Series": self.get_series(),
-            "Summary": self.get_summaries(),
-            "Wordcount": self.get_wordcount(),
+            "Parent Work URL": self._get_urls(),
+            "Parent Work Title": self._get_titles(),
+            "Writer": self._get_authors(),
+            "Series": self._get_series(),
+            "Summary": self._get_summaries(),
+            "Wordcount": self._get_wordcount(),
 
-            "Archive Warnings": self.get_tags("Archive Warning"),
-            "Rating": self.get_tags("Rating"),
-            "Categories": self.get_tags("Category"),
-            "Fandoms": self.get_tags("Fandom"),
-            "Relationships": self.get_tags("Relationship"),
-            "Characters": self.get_tags("Character"),
-            "Additional Tags": self.get_tags("Additional Tags")
+            "Archive Warnings": self._get_tags("Archive Warning"),
+            "Rating": self._get_tags("Rating"),
+            "Categories": self._get_tags("Category"),
+            "Fandoms": self._get_tags("Fandom"),
+            "Relationships": self._get_tags("Relationship"),
+            "Characters": self._get_tags("Character"),
+            "Additional Tags": self._get_tags("Additional Tags")
         }
 
         self._vprint('done!')

@@ -4,7 +4,7 @@
 from argparse import ArgumentParser
 from html_downloader import HTMLDownloader
 from audio_handler import AudioHandler
-from work_info import WorkInfo
+from posting_info import WorkInfo
 from project_tracker import ProjectTracker
 from gdrive_uploader import GDriveUploader
 from ia_uploader import IAUploader
@@ -38,7 +38,9 @@ def post(verbose=True):
     """ Posting everything.
     /!\\ everything has to be ready, will fail otherwise """
     # Extracting info from files
-    project = ProjectTracker(fandom="test", project="test", verbose=verbose)
+    project = ProjectTracker(fandom='hrpf',
+        title="NYT Best Seller List Don't Mean Shit (To Joel Farabee)",
+        verbose=verbose)
     work = WorkInfo(project, mode="saved", verbose=verbose)
 
     # Editing audio files for names and metadata
