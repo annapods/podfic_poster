@@ -134,7 +134,7 @@ class Ao3Template:
             summary =  f'''{summary} :: Written by {authors}.'''
         return summary
 
-    def get_section(self, title:str, parts:list):
+    def _get_section(self, title:str, parts:list):
         """ Big sections """
         template = ""
         parts = TemplateAux.delete_empty(parts)
@@ -142,50 +142,50 @@ class Ao3Template:
         + "\n\n".join(parts)
         return template
 
-    def get_sub_section(self, title:str, content:str):
+    def _get_sub_section(self, title:str, content:str):
         """ Sub sections of big sections """
         template = ""
         if content: template = f'''<p><strong>{title}:</strong><br>\n''' \
         + content + "</p>"
         return template
         
-    def get_ia_dl(self):
+    def _get_ia_dl(self):
         """ Internet archive section """
         title = TemplateAux.get_a_href(self._info["IA Link"], "Internet archive")
         content = "Mp3 and raw audio files for download and streaming as well as the html text " \
         + "and the cover art in png and svg formats if applicable.\n" \
         + "<br>See the side of the page (“download options”) for the different formats/files " \
         + "and for download. The mp3 file will be under “VBR MP3”.</p>"
-        return self.get_sub_section(title, content)
+        return self._get_sub_section(title, content)
 
-    def get_gdrive_dl(self):
+    def _get_gdrive_dl(self):
         """ GDrive section """
         title = TemplateAux.get_a_href(self._info["GDrive Link"], "Google drive")
         content = "Mp3 file(s) streamable on gdrive.</p>"
-        return self.get_sub_section(title, content)
+        return self._get_sub_section(title, content)
 
-    def get_streaming(self):
+    def _get_streaming(self):
         """ Streaming section """
         content = "<br>\n".join(
             [f'''<audio src="{link}"></audio>''' for link in self._info["IA Streaming Links"]])
-        return self.get_sub_section("Browser streaming", content)
+        return self._get_sub_section("Browser streaming", content)
 
-    def get_audio_files(self):
+    def _get_audio_files(self):
         """ Audio files section """
         parts = [
-            self.get_ia_dl(),
-            self.get_gdrive_dl(),
-            self.get_streaming()
+            self._get_ia_dl(),
+            self._get_gdrive_dl(),
+            self._get_streaming()
         ]
-        return self.get_section("Podfic files", parts)
+        return self._get_section("Podfic files", parts)
 
-    def get_context(self):
+    def _get_context(self):
         """ Context section """
         occasion = self._info["Occasion"]
         content = "" if occasion == "none" or occasion == "n/a" else f'''This was created for {occasion}.'''
-        return self.get_sub_section("Context", content)
+        return self._get_sub_section("Context", content)
 
-    def get_thanks(self):
+    def _get_thanks(self):
         """ Thanks section """
         content = ""
         if self._info["Writer"]:
@@ -193,9 +193,9 @@ class Ao3Template:
             thanks = "giving blanket permission to podfics" if self._info["BP"] \
                 else "giving me permission to record this work!"
             content += thanks
-        return self.get_sub_section("Thanks", content)
+        return self._get_sub_section("Thanks", content)
 
-    def get_additional_credits(self):
+    def _get_additional_credits(self):
         """ Credits section """
         credits = self._info["Credits"]
         if self._info["Stickers"]:
@@ -206,23 +206,23 @@ class Ao3Template:
         if credits:
             credits = [TemplateAux.get_a_href(link, name) for link, name in credits]
         content = TemplateAux.get_li(credits)
-        return self.get_sub_section("Additional credits", content)
+        return self._get_sub_section("Additional credits", content)
 
-    def get_content_notes(self):
+    def _get_content_notes(self):
         """ Content notes section """
-        return self.get_sub_section("Content notes", self._info["Content Notes"])
+        return self._get_sub_section("Content notes", self._info["Content Notes"])
 
-    def get_notes(self):
+    def _get_notes(self):
         """ Notes section """
         parts = [
-            self.get_context(),
-            self.get_thanks(),
-            self.get_additional_credits(),
-            self.get_content_notes()
+            self._get_context(),
+            self._get_thanks(),
+            self._get_additional_credits(),
+            self._get_content_notes()
         ]
-        return self.get_section("Notes", parts)
+        return self._get_section("Notes", parts)
 
-    def get_contact_info(self):
+    def _get_contact_info(self):
         """ Contact info section """
         info = {
             "names": "Anna or Annapods",
@@ -237,9 +237,9 @@ class Ao3Template:
         info["socials"] = TemplateAux.get_enum_links(info["socials"])
         info = [f'''{key}: {value}''' for key, value in info.items()]
         content = TemplateAux.get_li(info)
-        return self.get_sub_section("Contact info", content)
+        return self._get_sub_section("Contact info", content)
 
-    def get_what_to_say(self):
+    def _get_what_to_say(self):
         """ What to say section """
         content = [
             'I’d love to hear from you! Be it a single word or emoji, a long freetalk on your ' \
@@ -259,23 +259,23 @@ class Ao3Template:
                 + 'com/95933.html">vocabulary</a>'
         ]
         content = "<br>\n".join(content)
-        return self.get_sub_section("What to say/what not to say", content)
+        return self._get_sub_section("What to say/what not to say", content)
 
-    def get_reply_policy(self):
+    def _get_reply_policy(self):
         """ Reply policy section """
         content = "Leaving me comments is kind of like starting a snail mail exchange in reply to a message in a bottle. I might not answer quickly (as in, it… could take me a few months…) but I will eventually!"
-        return self.get_sub_section("When to expect a reply", content)
+        return self._get_sub_section("When to expect a reply", content)
 
-    def get_feedback(self):
+    def _get_feedback(self):
         """ Feedback section """
         parts = [
-            self.get_contact_info(),
-            self.get_what_to_say(),
-            self.get_reply_policy()
+            self._get_contact_info(),
+            self._get_what_to_say(),
+            self._get_reply_policy()
         ]
-        return self.get_section("Feedback", parts)
+        return self._get_section("Feedback", parts)
 
-    def get_cover_art(self):
+    def _get_cover_art(self):
         """ Cover art """
         content = f'''<p align="center">{TemplateAux.get_img(self._info["IA Cover Link"],
             width=250)}'''
@@ -287,10 +287,10 @@ class Ao3Template:
     def _get_ao3_work_text(self):
         """ Format and return the whole of the work text """
         parts = [
-            self.get_cover_art(),
-            self.get_audio_files(),
-            self.get_notes(),
-            self.get_feedback()
+            self._get_cover_art(),
+            self._get_audio_files(),
+            self._get_notes(),
+            self._get_feedback()
         ]
         parts = [part for part in parts if parts]
         return "\n\n<p>&nbsp;</p>\n\n".join(parts)
