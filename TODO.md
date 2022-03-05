@@ -1,14 +1,11 @@
 [x] download html
 [x] extract data
 [x] fill templates
-[X] edit audio metadata
+[x] edit audio metadata
 [x] upload to gdrive
-[-] upload to ia
-    [-] test with NYT...
-[-] upload to ao3 (don't forget Podfic Link in template dw, and upload templates/info to ia)
-    [-] create draft
-    [-] get shareable link
+[x] upload to ia
+[x] upload to ao3
 [-] upload to dw
-[-] fill tracker
+[-] fill tracker (don't forget the posting date)
 [-] fandom taxonomy -> abr, prefered canonical tag, umbrella tracker tag
-[-] command line ao3downloader -> pip install, as is
+[-] ao3downloader in requirements -> possible to automatize download?

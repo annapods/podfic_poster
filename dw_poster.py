@@ -18,5 +18,5 @@ class DWPoster:
     def post_podfic(self):
         self._vprint("Drafting podfic post to dw...", end=" ")
         pass
-        self._vprint("done!")
+        self._vprint("done!\n")
         

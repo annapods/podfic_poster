@@ -14,12 +14,19 @@ pip install -r requirements.txt
 download code at https://github.com/nianeyna/ao3downloader, place it in the folder, unzip
 move ao3download.py from the main folder to ao3downloader/actions, replacing the original file
 first time running it, it will ask for user name and password, and save them in settings.json
+WARNING saves settings in plain text, which is not at all secure... no idea how to do it
+differently though
 
 ## internetarchive
 ia configure
 will ask for email and password and save them in ~/.config/internetarchive/ia.ini
 
 ## gdrive
+set up oauth: https://developers.google.com/workspace/guides/create-credentials#oauth-client-id
+add test users: https://console.developers.google.com/apis/credentials/consent?referrer=search&project=delta-entry-341918
+
+## ao3-poster
+will use the ao3-downloader settings, no need to do anything
 
 
 # usage

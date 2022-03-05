@@ -19,3 +19,10 @@ six==1.16.0
 soupsieve==2.2.1
 tqdm==4.60.0
 urllib3==1.26.4
+
+# ao3-poster
+# a new minor update to markupsafe changed the name of a function
+# https://github.com/pallets/markupsafe/issues/284
+# TODO check back in a few months to see if ao3-poster has been updated accordingly
+ao3-poster
+markupsafe==2.0.1

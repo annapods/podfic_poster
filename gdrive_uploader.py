@@ -3,12 +3,6 @@
 https://chingjunetao.github.io/learning/manage-google-drive-with-python/
 https://stackoverflow.com/questions/30585166/create-a-folder-if-not-exists-on-google-drive-and-upload-a-file-to-it-using-py
 https://stackoverflow.com/questions/70993735/pydrive-generating-a-sharable-link-to-a-file-immediately-after-upload
-
-to set up gdrive API:
-- set up oauth:
-https://developers.google.com/workspace/guides/create-credentials#oauth-client-id
-- add test users:
-https://console.developers.google.com/apis/credentials/consent?referrer=search&project=delta-entry-341918
 """
 
 # from __future__ import print_function  # TODO can we delete that one?
@@ -60,20 +54,20 @@ class GDriveUploader:
         self._vprint("Uploading podfic files to gdrive...")
         for path in self._project.files.audio.compressed.formatted:
             self.upload_file(path)
-        self._vprint("done!")
+        self._vprint("done!\n")
 
     def upload_cover(self):
         """ Uploads cover files (all png) to the project's gdrive folder """
         self._vprint("Uploading podfic cover to gdrive...")
         for path in self._project.files.cover.compressed:
             self.upload_file(path)
-        self._vprint("done!")
+        self._vprint("done!\n")
 
     def upload_info(self):
         """ Uploads ao3 post info (csv file) to the project's gdrive folder """
         self._vprint("Uploading podfic info to gdrive...")
         self.upload_file(self._project.files.template.ao3)
-        self._vprint("done!")
+        self._vprint("done!\n")
 
     def upload_file(self, path):
         """ Uploads the given file to the project's gdrive folder

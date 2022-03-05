@@ -52,10 +52,10 @@ def post(verbose=True):
     # project.update_file_paths()
 
     # Uploading to gdrive and ia
-    gdrive_uploader = GDriveUploader(project, work, verbose=verbose)
+    # gdrive_uploader = GDriveUploader(project, work, verbose=verbose)
     # gdrive_uploader.upload_audio()
     # gdrive_uploader.upload_cover()
-    ia_uploader = IAUploader(project, work, verbose=verbose)
+    # ia_uploader = IAUploader(project, work, verbose=verbose)
     # ia_uploader.upload_audio()
     # ia_uploader.upload_cover()
 

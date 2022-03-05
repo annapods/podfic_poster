@@ -24,7 +24,7 @@ class WorkInfo:
 
     default_values = {
         "Language": "English",
-        "Work Text": "__WORK_TEXT",
+        "Work text": "__WORK_TEXT",
         "Podfic Link": "__PODFIC_LINK",
         "Posting Date": "__POSTING_DATE",
         "Creator/Pseud(s)": [("ao3.org/users/Annapods", "Annapods")],
@@ -149,15 +149,23 @@ class WorkInfo:
 
         template = Ao3Template(self.info)
         self.info["Summary"] = template.summary
-        self.info["Work Text"] = template.work_text
+        self.info["Work text"] = template.work_text
         self._save_info()
 
         template = {}
         template["Work Title"] = f'[{self.info["Work Type"]}] {self._project.title.raw}'
+
         for key in ["Fandoms", "Relationships",
-            "Characters", "Additional Tags", "Creator/Pseud(s)", "Add co-creators?",
-            "Summary", "Notes at the beginning", "Notes at the end", "Language", "Work Text",
-            "Parent Work URL", "Rating", "Archive Warnings", "Categories"]:
+            "Characters", "Additional Tags", "Archive Warnings", "Categories"]:
+            template[key] = ", ".join(self.info[key])
+
+        for key in ["Creator/Pseud(s)", "Add co-creators?"]:
+            if self.info[key]:
+                pseuds = [pseud for _, pseud in self.info[key] if not pseud.startswith("__")]
+                template[key] = ", ".join(pseuds)
+
+        for key in ["Summary", "Notes at the beginning", "Notes at the end", "Language",
+            "Work text", "Parent Work URL", "Rating"]:
             template[key] = self.info[key]
 
         if isinstance(self.info["Parent Work URL"], list):

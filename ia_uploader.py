@@ -119,7 +119,7 @@ class IAUploader:
             + f"{self._identifier}/{os.path.basename(path)}"
             for path in self._project.files.audio.compressed.formatted]
         self._work.update_info("IA Streaming Links", links)
-        self._vprint("done!")
+        self._vprint("done!\n")
 
 
     def upload_cover(self):
@@ -131,14 +131,14 @@ class IAUploader:
         link = "https://archive.org/download/" \
             + f"{self._identifier}/{os.path.basename(self._project.files.cover.compressed[0])}"
         self._work.update_info("IA Cover Link", link)
-        self._vprint("done!")
+        self._vprint("done!\n")
 
 
     def upload_info(self):
         """ Uploads the info file (ao3 csv) to the ia item """
         self._vprint("Uploading podfic info to ia...")
         self._upload_file(self._project.files.template.ao3)
-        self._vprint("done!")
+        self._vprint("done!\n")
 
 
     def update_description(self):
@@ -152,4 +152,4 @@ class IAUploader:
             + f'<a href="{self._work.info["Podfic Link"]}"></a>'
         item = get_item(self._identifier)
         _ = item.modify_metadata(metadata={'description': description})
-        self._vprint("done!")
+        self._vprint("done!\n")

@@ -145,7 +145,7 @@ class AudioHandler:
                     data = data
             ))
             audio.save()
-        self._vprint("done!")
+        self._vprint("done!\n")
 
 
     def rename_wip_audio_files(self):
