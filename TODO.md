@@ -4,7 +4,7 @@
 [X] edit audio metadata
 [x] upload to gdrive
 [-] upload to ia
-    [-] test
+    [-] test with NYT...
 [-] upload to ao3 (don't forget Podfic Link in template dw, and upload templates/info to ia)
     [-] create draft
     [-] get shareable link

@@ -6,7 +6,6 @@ and templates
 """
 
 import yaml
-import os
 import pandas
 from template_filler import Ao3Template
 from template_filler import DWTemplate
@@ -14,8 +13,14 @@ from html_extractor import HTMLExtractor
 
 
 class WorkInfo:
-    """ All work info: ao3 work, tracker and dw
-    Calls to templates """
+    """ Keeps track of work info:
+    - all info, in self.info, saved in the info file
+        - at initialisation, use "extract" mode to extract info from html files
+        - ... use "saved" mode to load info from saved info file
+        - afterward, use update_info(category, content) to update the info from outside
+    - ao3 template, using Ao3Template, saved in the ao3 template file, create_ao3_template
+    - dw template, using DWTemplate, saved in the dw template file, create_dw_template
+    - tracker info, not yet implemented TODO, save_tracker_info """
 
     default_values = {
         "Language": "English",
@@ -46,41 +51,43 @@ class WorkInfo:
     }
 
 
-    def __init__(self, file_info, mode="saved", verbose=True):
+    def __init__(self, project_info, mode="saved", verbose=True):
         """ mode can be saved (from yaml) or extract (from html files using HTMLExtractor,
         with default values) """
-        self.verbose = verbose
-        self.files = file_info
-        assert mode in ["saved", "extract"], "/!\\ that is not a valid mode of work info creation"
+        self._verbose = verbose
+        self._project = project_info
+        assert mode in ["saved", "extract"], \
+            "/!\\ that is not a valid mode of work info creation"
 
         if mode == "extract":
-            extractor = HTMLExtractor(file_info.html_fics, verbose)
+            extractor = HTMLExtractor(self._project.files.fic, verbose)
             self.info = extractor.extract_html_data()
-            self.add_default_fields()
+            self._add_default_fields()
+            self._save_info()
 
         if mode == "saved":
-            with open(self.files.yaml_info, 'r') as file:
+            with open(self._project.files.info, 'r') as file:
                 self.info = yaml.safe_load(file)
 
 
-    def vprint(self, string, end="\n"):
+    def _vprint(self, string, end="\n"):
         """ Print if verbose """
-        if self.verbose:
+        if self._verbose:
             print(string, end=end)
 
 
-    def save_info(self):
+    def _save_info(self):
         """ Saves the info to the yaml info file """
-        with open(self.files.yaml_info, 'w') as f:
-            yaml.safe_dump(self.info, f)
+        with open(self._project.files.info, 'w') as file:
+            yaml.safe_dump(self.info, file)
 
     def update_info(self, category, content):
         """ Updates one of the fields and saves the info to the file """
         assert category in self.info, "/!\\ work info category doesn't exist"
         self.info[category] = content
-        self.save_info()
+        self._save_info()
 
-    def add_default_fields(self):
+    def _add_default_fields(self):
         """ Adds all missing default fields to the info """
         for key, value in WorkInfo.default_values.items():
             if key not in self.info:
@@ -89,20 +96,20 @@ class WorkInfo:
 
     ### Additional tags
 
-    def add_podfic_tags(self):
+    def _add_podfic_tags(self):
         """ Adds the missing podfic tags to the additional tags """
         for tag in [
                 "Podfic", "Audio Format: MP3", "Audio Format: Streaming"
-            ] + [self.get_audio_length_tag()]:            
+            ] + [self._get_audio_length_tag()]:
             if tag not in self.info["Additional Tags"]:
                 self.info["Additional Tags"].append(tag)
 
 
-    def get_audio_length_tag(self):
+    def _get_audio_length_tag(self):
         """ Returns the adequate audio length additional tag """
 
         assert self.info["Audio Length"] != WorkInfo.default_values['Audio Length']
-        hours, minutes, seconds = self.info["Audio Length"].split(":")
+        hours, minutes, _ = self.info["Audio Length"].split(":")
         hours, minutes = int(hours), int(minutes)
 
         conditions = (
@@ -135,17 +142,18 @@ class WorkInfo:
     ### Ao3 work text and summary
 
     def create_ao3_template(self):
-        self.vprint(f'Creating ao3 template...', end=" ")
-        self.check_and_format_info()
-        self.add_podfic_tags()
+        """ Saves all ao3 posting info to the template file, ready to go! """
+        self._vprint(f'Creating ao3 template...', end=" ")
+        self._check_and_format_info()
+        self._add_podfic_tags()
 
         template = Ao3Template(self.info)
         self.info["Summary"] = template.summary
         self.info["Work Text"] = template.work_text
-        self.save_info()
+        self._save_info()
 
         template = {}
-        template["Work Title"] = f'[{self.info["Work Type"]}] {self.files.title}'
+        template["Work Title"] = f'[{self.info["Work Type"]}] {self._project.title.raw}'
         for key in ["Fandoms", "Relationships",
             "Characters", "Additional Tags", "Creator/Pseud(s)", "Add co-creators?",
             "Summary", "Notes at the beginning", "Notes at the end", "Language", "Work Text",
@@ -156,34 +164,36 @@ class WorkInfo:
             template["Parent Work URL"] = template["Parent Work URL"][0]
 
         template = pandas.DataFrame([template])
-        template.to_csv(self.files.ao3)
-        self.vprint(f'done!Saved in {self.files.ao3}\n')
+        template.to_csv(self._project.files.template.ao3)
+        self._vprint(f'done!Saved in {self._project.files.template.ao3}\n')
 
 
     ### DW post
 
     def create_dw_template(self):
-        self.vprint(f'Creating dw template...', end=" ")
-        self.check_and_format_info(posted=True)
+        """ Saves all dw posting info to the template file, ready to go! """
+        self._vprint(f'Creating dw template...', end=" ")
+        self._check_and_format_info(posted=True)
 
         template = DWTemplate(self.info)
-        with open(self.files.dw, 'w') as f:
+        with open(self._project.files.template.dw, 'w') as f:
             f.write(template.post)
 
-        self.vprint(f'done!')
+        self._vprint(f'done!')
 
 
     ### Tracker
 
     def save_tracker_info(self):
-        self.vprint(f'saving tracker info...', end=" ")
-        pass  # TODO
-        self.vprint(f'done!')
+        """ TODO... """
+        self._vprint('saving tracker info...', end=" ")
+        pass
+        self._vprint('done!')
 
 
     ### Checks and formatting
 
-    def check_and_format_info(self, posted=False):
+    def _check_and_format_info(self, posted=False):
         """
         Double checks everything is ready to fill the templates
         """

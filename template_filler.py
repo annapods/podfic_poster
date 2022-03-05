@@ -42,14 +42,14 @@ def get_li(items):
 class DWTemplate:
     
     def __init__(self, info, verbose=True):
-        self.verbose = verbose
+        self._verbose = verbose
         self.info = info
         self.post = self.get_post()
         self.save_as = ""
 
-    def vprint(self, string, end="\n"):
+    def _vprint(self, string, end="\n"):
         """ Print if verbose """
-        if self.verbose:
+        if self._verbose:
             print(string, end=end)
 
     def get_post(self):
@@ -84,14 +84,14 @@ class Ao3Template:
     Filling the ao3 template
     """
     def __init__(self, info, verbose=True):
-        self.verbose = verbose
+        self._verbose = verbose
         self.info = info
         self.summary = self.get_ao3_summary()
         self.work_text = self.get_ao3_work_text()
 
-    def vprint(self, string, end="\n"):
+    def _vprint(self, string, end="\n"):
         """ Print if verbose """
-        if self.verbose:
+        if self._verbose:
             print(string, end=end)
 
     def get_ao3_summary(self):

@@ -31,58 +31,58 @@ class GDriveUploader:
 
     podfic_folder_path = "podfic files"
 
-    def __init__(self, file_info, work_info, verbose=True):
-        self.verbose = verbose
-        self.files = file_info
-        self.work = work_info
+    def __init__(self, project_info, work_info, verbose=True):
+        self._verbose = verbose
+        self._project = project_info
+        self._work = work_info
 
         # Connection to API
         gauth = GoogleAuth()
         gauth.LocalWebserverAuth()
-        self.drive = GoogleDrive(gauth)
+        self._drive = GoogleDrive(gauth)
 
         # Getting shareable folder
         self.get_podfic_folder()
         self.set_up_permission()
 
         # Saving link to folder in work info
-        self.work.update_info("GDrive Link", self.link)
+        self._work.update_info("GDrive Link", self.link)
 
 
-    def vprint(self, string, end="\n"):
+    def _vprint(self, string, end="\n"):
         """ Print if verbose """
-        if self.verbose:
+        if self._verbose:
             print(string, end=end)
 
 
     def upload_audio(self):
         """ Uploads audio files (mp3 only) to the project's gdrive folder """
-        self.vprint("Uploading podfic files to gdrive...")
-        for path in self.files.mp3_finals:
+        self._vprint("Uploading podfic files to gdrive...")
+        for path in self._project.files.audio.compressed.formatted:
             self.upload_file(path)
-        self.vprint("done!")
+        self._vprint("done!")
 
     def upload_cover(self):
         """ Uploads cover files (all png) to the project's gdrive folder """
-        self.vprint("Uploading podfic cover to gdrive...")
-        for path in self.files.pngs:
+        self._vprint("Uploading podfic cover to gdrive...")
+        for path in self._project.files.cover.compressed:
             self.upload_file(path)
-        self.vprint("done!")
+        self._vprint("done!")
 
     def upload_info(self):
         """ Uploads ao3 post info (csv file) to the project's gdrive folder """
-        self.vprint("Uploading podfic info to gdrive...")
-        self.upload_file(self.files.ao3)
-        self.vprint("done!")
+        self._vprint("Uploading podfic info to gdrive...")
+        self.upload_file(self._project.files.template.ao3)
+        self._vprint("done!")
 
     def upload_file(self, path):
         """ Uploads the given file to the project's gdrive folder
         :args path: str, path to the file """
-        self.vprint(f"{path}")
-        file = self.drive.CreateFile()
+        self._vprint(f"{path}")
+        file = self._drive.CreateFile()
         file.SetContentFile(path)
         file["title"] = os.path.basename(path)
-        file["parents"] = [{"id": self.folder['id']}]
+        file["parents"] = [{"id": self._folder['id']}]
         file.Upload()
 
 
@@ -94,7 +94,7 @@ class GDriveUploader:
         :returns: id of first such element encountered, else None """
 
         # Select by parent id
-        file_list = self.drive.ListFile(
+        file_list = self._drive.ListFile(
             {'q': f"'{parent_id}' in parents and trashed=false"}).GetList()
 
         # Select by name
@@ -116,35 +116,35 @@ class GDriveUploader:
         for child_name in folders[1:]:
             parent_id = self.get_child_id(parent_id, child_name)
 
-        title = f'[{self.files.fandom.upper()}] {self.files.safe_title}'
+        title = f'[{self._project.fandom.upper()}] {self._project.title.safe_for_path}'
 
         # drive.CreateFile does not actually upload the file, only creates the object
         # If the filder already exists, just get it
         folder_id = self.get_child_id(parent_id, title)
         if folder_id:
-            self.folder = self.drive.CreateFile({'id': folder_id})
+            self._folder = self._drive.CreateFile({'id': folder_id})
         # Else, create it
         else:
             metadata = {'title': title,
                         "parents": [{"id": parent_id}],
                         'mimeType': 'application/vnd.google-apps.folder'}
-            self.folder = self.drive.CreateFile(metadata)
+            self._folder = self._drive.CreateFile(metadata)
 
         # Upload it
-        self.folder.Upload()
+        self._folder.Upload()
 
 
     def set_up_permission(self):
         """ Make the folder accessible by everyone as readers, get the shareable link """
 
         # Open up sharing permission
-        _ = self.folder.InsertPermission({
+        _ = self._folder.InsertPermission({
             'type': 'anyone',
             'value': 'anyone',
             'role': 'reader'})
 
         # Upload it
-        self.folder.Upload()
+        self._folder.Upload()
 
         # Get the shareable link
-        self.link = self.folder['alternateLink']
+        self.link = self._folder['alternateLink']

@@ -20,25 +20,25 @@ def get_padded_track_number_string(track_number, total_tracks):
 class AudioHandler:
     """ Handling audio files: renaming, updating metadata """
 
-    def __init__(self, file_info, work_info, verbose=True):
-        self.verbose = verbose
-        self.files = file_info
-        self.work = work_info
-        self.title = self.get_audio_file_title()
-        self.safe_title = self.get_audio_file_title(safe_for_path=True)
+    def __init__(self, project_info, work_info, verbose=True):
+        self._verbose = verbose
+        self._project = project_info
+        self._work = work_info
+        self._metadata_title = self.get_audio_file_title()
+        self._file_title = self.get_audio_file_title(safe_for_path=True)
 
 
-    def vprint(self, string, end="\n"):
+    def _vprint(self, string, end="\n"):
         """ Print if verbose """
-        if self.verbose:
+        if self._verbose:
             print(string, end=end)
 
 
     def get_audio_file_title(self, safe_for_path=False):
         """ Returns "[FANDOM] title"
         If safe_for_path, uses the safe version of the title """
-        title = self.files.safe_title if safe_for_path else self.files.title
-        title = f'''[{self.files.fandom.upper()}] {title}'''
+        title = self._project.title.safe_for_path if safe_for_path else self._project.title.raw
+        title = f'''[{self._project.fandom.upper()}] {title}'''
         return title
 
 
@@ -46,11 +46,11 @@ class AudioHandler:
         """ Returns a formatted string for the audio files' artist metadata field
         ex: "Podder1, Podder2 (w:Writer)" """
         podders = []
-        if self.work.info["Creator/Pseud(s)"]:
-            podders.extend(self.work.info["Creator/Pseud(s)"])
-        if self.work.info["Add co-creators?"]:
-            podders.extend(self.work.info["Add co-creators?"])
-        writers = self.work.info["Writer"]
+        if self._work.info["Creator/Pseud(s)"]:
+            podders.extend(self._work.info["Creator/Pseud(s)"])
+        if self._work.info["Add co-creators?"]:
+            podders.extend(self._work.info["Add co-creators?"])
+        writers = self._work.info["Writer"]
 
         def get_enum(persons):
             """ Aux function, to string """
@@ -72,11 +72,13 @@ class AudioHandler:
         datetime: https://www.w3schools.com/python/python_datetime.asp
         taglib: https://pypi.org/project/pytaglib/#installation-notes """
 
-        self.vprint("Updating metadata...")
+        self._vprint("Updating metadata...")
 
-        mp3s = self.files.mp3_finals if final_files else self.files.mp3_wips
+        mp3s = self._project.files.audio.compressed.formatted if final_files \
+            else self._project.files.audio.compressed.unformatted
         assert mp3s, "/!\\ tried to add mp3 metadata, couldn't find any files"
-        wavs = self.files.wav_finals if final_files else self.files.wav_wips
+        wavs = self._project.files.audio.raw.formatted if final_files \
+            else self._project.files.audio.raw.unformatted
         assert wavs, "/!\\ tried to add wav metadata, couldn't find any files"
 
         artist = self.get_artist_tag()
@@ -85,26 +87,27 @@ class AudioHandler:
             n_tracks = len(file_paths)
             for track_number, file_path in enumerate(file_paths):
                 track_number += 1
-                self.vprint(file_path)
+                self._vprint(file_path)
                 audio = taglib.File(file_path)
-                audio.tags["TITLE"] = [self.title]
+                audio.tags["TITLE"] = [self._metadata_title]
                 if n_tracks > 1:
                     track_number = get_padded_track_number_string(
                         track_number, n_tracks)
-                    audio.tags["TITLE"] = [f'{self.title} ({track_number}/{n_tracks})']
-                audio.tags["ALBUM"] = [self.title]
+                    audio.tags["TITLE"] = [f'{self._metadata_title} ({track_number}/{n_tracks})']
+                audio.tags["ALBUM"] = [self._metadata_title]
                 audio.tags["ARTIST"] = [artist]
                 audio.tags["TRACKNUMBER"] = [f"{track_number}/{n_tracks}"]
                 audio.tags["GENRE"] = ["Podfic"]
                 audio.tags["DATE"] = [str(datetime.datetime.now().year)]
                 audio.save()
 
-        self.vprint("...done!")
+        self._vprint("...done!")
 
     def save_audio_length(self):
         """ Gets the total audio length and saves it in the info file
         https://stackoverflow.com/questions/538666/format-timedelta-to-string """
-        seconds = sum([taglib.File(file_path).length for file_path in self.files.mp3_finals])
+        seconds = sum([taglib.File(file_path).length for file_path \
+            in self._project.files.audio.compressed.formatted])
         hours, remainder = divmod(seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
 
@@ -115,8 +118,8 @@ class AudioHandler:
             return number if len(number) > 1 else '0'+number
 
         length = f'{pad_time(hours)}:{pad_time(minutes)}:{pad_time(seconds)}'
-        self.work.update_info("Audio Length", length)
-        self.work.save_info()
+        self._work.update_info("Audio Length", length)
+        self._work.save_info()
 
 
     def add_cover_art(self):
@@ -127,11 +130,12 @@ class AudioHandler:
         https://stackoverflow.com/questions/47346399/
         how-do-i-add-cover-image-to-a-mp3-file-using-mutagen-in-python """
 
-        self.vprint("Adding cover art to mp3 files...", end=" ")
-        with open(self.files.pngs[0], 'rb') as file:
+        self._vprint("Adding cover art to mp3 files...", end=" ")
+        with open(self._project.files.cover.compressed[0], 'rb') as file:
             data = file.read()
 
-        for file_path in self.files.mp3_finals + self.files.mp3_wips:
+        for file_path in self._project.files.audio.compressed.formatted \
+            + self._project.files.audio.compressed.unformatted:
             audio = MP3(file_path, ID3=ID3)
             audio.tags.add(APIC(
                     encoding = 3, # 3 is for utf-8
@@ -142,18 +146,18 @@ class AudioHandler:
                     data = data
             ))
             audio.save()
-        self.vprint("done!")
+        self._vprint("done!")
 
 
     def rename_wip_audio_files(self):
         """ Renames audio files from wip to final title """
-        self.vprint("Renaming wip files...")
-        new_path_start = os.path.join(self.files.folder, self.safe_title)
+        self._vprint("Renaming wip files...")
+        new_path_start = os.path.join(self._project.folder, self._file_title)
 
         def rename_one(old, new):
             assert not os.path.exists(new), \
                 f"trying to rename {old} -> {new} but {new} already exists"
-            self.vprint(f"{old} -> {new}")
+            self._vprint(f"{old} -> {new}")
             os.rename(old, new)
             return new
 
@@ -170,7 +174,7 @@ class AudioHandler:
                 ) for i in range(len(paths))
             ]
 
-        rename_all(self.files.mp3_wips, "mp3")
-        rename_all(self.files.wav_wips, "wav")
-        self.files.update_file_paths()
-        self.vprint("...done!")
+        rename_all(self._project.files.audio.compressed.unformatted, "mp3")
+        rename_all(self._project.files.audio.raw.unformatted, "wav")
+        self._project.update_file_paths()
+        self._vprint("...done!")
