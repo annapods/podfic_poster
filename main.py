@@ -64,10 +64,10 @@ def post(verbose=True):
     ao3_poster = Ao3Poster(project, work, verbose=verbose)
     ao3_poster.post_podfic()
 
-    # Uploading ao3 info to gdrive and ia
-    gdrive_uploader.upload_info()
-    ia_uploader.update_description()
-    ia_uploader.upload_info()
+    # # Uploading ao3 info to gdrive and ia
+    # gdrive_uploader.upload_info()
+    # ia_uploader.update_description()
+    # ia_uploader.upload_info()
 
     # Posting to dw
     work.create_dw_template()

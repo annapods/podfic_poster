@@ -5,6 +5,8 @@
 [x] upload to gdrive
 [x] upload to ia
 [x] upload to ao3
+    [-] fix li lists
+    [-] fix default credits in work text
 [-] upload to dw
 [-] fill tracker (don't forget the posting date)
 [-] fandom taxonomy -> abr, prefered canonical tag, umbrella tracker tag
