@@ -3,9 +3,9 @@
 
 import os, re
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from collections import namedtuple
-from typing import List, Any
+from typing import List
 
 
 # Dataclass structures to organise files
@@ -42,14 +42,16 @@ class TemplateFileTracker:
 @dataclass
 class FileTracker:
     info: str
+    fic: List[str]
     template: TemplateFileTracker
     audio: CompressedFileTracker
     cover: CompressedFileTracker
-    def __init__(self, info="",
+    def __init__(self, info="", fic=[],
         template=TemplateFileTracker(),
         audio=CompressedFileTracker(FormattedFileTracker(), FormattedFileTracker()),
         cover=CompressedFileTracker()):
         self.info = info
+        self.fic = fic
         self.template = template
         self.audio = audio
         self.cover = cover
@@ -88,6 +90,7 @@ class ProjectTracker:
         self.fandom = fandom if fandom else input("fandom abr: ")
         self.title = self._get_title(title)
         self.folder = self._get_folder(folder)
+        # TODO WorkInfo + ProjectTracker -> ProjectID, ProjectFiles, ProjectData
 
         self.files = FileTracker()
         self.update_file_paths()

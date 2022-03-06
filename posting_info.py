@@ -199,12 +199,12 @@ class WorkInfo:
         post = DWTemplate(self.info).post
 
         if mass_xpost:
-            self.vprint(f"saving in {WorkInfo.mass_xpost_file}...", end=" ")
+            self._vprint(f"saving in {WorkInfo.mass_xpost_file}...", end=" ")
             with open(WorkInfo.mass_xpost_file, 'a') as file:
                 post += """\n\n\n<p align="center">...</p>\n\n\n"""
                 file.write(post)
         else:
-            self.vprint(f"saving in {self._project.files.template.dw}...", end=" ")
+            self._vprint(f"saving in {self._project.files.template.dw}...", end=" ")
             with open(self._project.files.template.dw, 'w') as file:
                 file.write(post)
 
