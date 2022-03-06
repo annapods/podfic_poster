@@ -6,35 +6,30 @@ TODO tracker
 """
 
 
-class TemplateAux:
+class Template:
     """ Auxiliary html-coding functions """
 
-    @staticmethod
-    def delete_empty(items):
+    def delete_empty(self, items):
         """ Delete empty items in list """
         return [i for i in items if i]
 
-    @staticmethod
-    def get_a_href(link, text):
+    def get_a_href(self, link, text):
         """ Formats link and text into an html hyperlink """
         return f'''<a href="{link}">{text}</a>'''
 
-    @staticmethod
-    def get_enum(items):
+    def get_enum(self, items):
         """ Joins items in a string with commas and 'and' """
         if not items: return ""
         if len(items) == 1: return items[-1]
         if len(items) == 2: return f"{items[-2]} and {items[-1]}"
         return ', '.join(items[:-3] + [f"{items[-2]} and {items[-1]}"])
 
-    @staticmethod
-    def get_enum_links(items):
+    def get_enum_links(self, items):
         """ Formats items into a string of hyperlinks """
         if not items: return ""
-        return TemplateAux.get_enum([TemplateAux.get_a_href(link, text) for link, text in items])
+        return self.get_enum([self.get_a_href(link, text) for link, text in items])
 
-    @staticmethod
-    def get_img(link="", width=0, height=0):
+    def get_img(self, link="", width=0, height=0):
         """ Formats info into the html for an embedded image """
         template = f'''<img src="{link}"''' if link else '''<img src="COVER"'''
         if width: template += f' width="{width}"'
@@ -45,16 +40,15 @@ class TemplateAux:
 
         return template
 
-    @staticmethod
-    def get_li(items):
+    def get_li(self, items):
         """ Formats items into the html code for an <li> list """
-        if items: return "\n".join([f'''<li>{item}</li>''' for item in items])
-        else: return ""
+        if items: return "".join([f'''<li>{item}</li>''' for item in items])
+        return ""
 
 
 ### DW
 
-class DWTemplate:
+class DWTemplate(Template):
     """ DW template creator! """
     
     def __init__(self, info, verbose=True):
@@ -71,18 +65,14 @@ class DWTemplate:
     def _get_post(self):
         """ Formats the dw post html """
         post = '<div style="text-align: center;">' \
-        + TemplateAux.get_img(self._info["IA Cover Link"], width=200, height=200) + "</div>" \
+        + self.get_img(self._info["IA Cover Link"], width=200, height=200) + "</div>" \
         + "\n\n" \
-        + f'''<p><strong>Parent works:</strong> ''' \
-        + TemplateAux.get_enum_links(
+        + '''<p><strong>Parent works:</strong> ''' + self.get_enum_links(
             zip(self._info["Parent Work URL"], self._info["Parent Work Title"])) \
         + '''</a><br>''' \
-        + '''<p><strong>Writers:</strong> ''' \
-        + TemplateAux.get_enum_links( self._info["Writer"]) \
-        + '''<br>''' \
-        + '''<strong>Readers:</strong> ''' \
-        + TemplateAux.get_enum_links(self._info["Creator/Pseud(s)"]) \
-        + '''<br>''' \
+        + f'''<p><strong>Writers:</strong> {self.get_enum_links(self._info["Writer"])}<br>''' \
+        + f'''<strong>Readers:</strong> {self.get_enum_links(self._info["Creator/Pseud(s)"])}''' \
+            + '''<br>''' \
         + f'''<strong>Occasion:</strong> {self._info["Occasion"]}<br>''' \
         + f'''<strong>Fandoms:</strong> {', '.join(self._info['Fandoms'])}<br>''' \
         + f'''<strong>Pairings:</strong> {', '.join(self._info['Relationships'])}<br>''' \
@@ -91,7 +81,7 @@ class DWTemplate:
         + f'''<strong>Rating:</strong> {self._info['Rating']}<br>''' \
         + f'''<strong>Content notes:</strong> {self._info['Content Notes']}<br>''' \
         + '''<strong>Credits:</strong> ''' \
-        + TemplateAux.get_enum_links(self._info['Credits']) \
+        + self.get_enum_links(self._info['Credits']) \
         + '''<br>''' \
         + f'''<strong>Length (including endnotes):</strong> {self._info['Audio Length']}<br>''' \
         + f'''<strong>Summary:</strong> {self._info['Summary']}</p>'''
@@ -100,12 +90,12 @@ class DWTemplate:
             (self._info["IA Link"], "internet archive"),
             (self._info["GDrive Link"], "gdrive")
         ]
-        post += f'''\n\n<p><strong>Link to podfic:</strong> {TemplateAux.get_enum_links(links)}'''
+        post += f'''\n\n<p><strong>Link to podfic:</strong> {self.get_enum_links(links)}'''
         return post
 
 
 
-class Ao3Template:
+class Ao3Template(Template):
     """ Filling the ao3 template """
 
     def __init__(self, info, verbose=True):
@@ -121,7 +111,7 @@ class Ao3Template:
 
     def _get_ao3_summary(self):
         """ Formats the ao3 summary html:
-        
+
         Blah blah summary.
 
         00:00:00 :: Written by <a href="link">writer</a>. """
@@ -130,14 +120,14 @@ class Ao3Template:
         if self._info["Audio Length"] not in summary:
             summary = f'''{summary}\n\n{self._info["Audio Length"]}'''
         if self._info["Writer"] and " :: Written by " not in summary:
-            authors = TemplateAux.get_enum_links(self._info["Writer"])
+            authors = self.get_enum_links(self._info["Writer"])
             summary =  f'''{summary} :: Written by {authors}.'''
         return summary
 
     def _get_section(self, title:str, parts:list):
         """ Big sections """
         template = ""
-        parts = TemplateAux.delete_empty(parts)
+        parts = self.delete_empty(parts)
         if parts: template = f"<h3>{title}:</h3>\n" \
         + "\n\n".join(parts)
         return template
@@ -148,10 +138,10 @@ class Ao3Template:
         if content: template = f'''<p><strong>{title}:</strong><br>\n''' \
         + content + "</p>"
         return template
-        
+
     def _get_ia_dl(self):
         """ Internet archive section """
-        title = TemplateAux.get_a_href(self._info["IA Link"], "Internet archive")
+        title = self.get_a_href(self._info["IA Link"], "Internet archive")
         content = "Mp3 and raw audio files for download and streaming as well as the html text " \
         + "and the cover art in png and svg formats if applicable.\n" \
         + "<br>See the side of the page (“download options”) for the different formats/files " \
@@ -160,7 +150,7 @@ class Ao3Template:
 
     def _get_gdrive_dl(self):
         """ GDrive section """
-        title = TemplateAux.get_a_href(self._info["GDrive Link"], "Google drive")
+        title = self.get_a_href(self._info["GDrive Link"], "Google drive")
         content = "Mp3 file(s) streamable on gdrive.</p>"
         return self._get_sub_section(title, content)
 
@@ -182,14 +172,15 @@ class Ao3Template:
     def _get_context(self):
         """ Context section """
         occasion = self._info["Occasion"]
-        content = "" if occasion == "none" or occasion == "n/a" else f'''This was created for {occasion}.'''
+        content = "" if occasion in ["none", "n/a"] else \
+            f'''This was created for {occasion}.'''
         return self._get_sub_section("Context", content)
 
     def _get_thanks(self):
         """ Thanks section """
         content = ""
         if self._info["Writer"]:
-            content = f'''Thanks to {TemplateAux.get_enum_links(self._info["Writer"])} for '''
+            content = f'''Thanks to {self.get_enum_links(self._info["Writer"])} for '''
             thanks = "giving blanket permission to podfics" if self._info["BP"] \
                 else "giving me permission to record this work!"
             content += thanks
@@ -204,8 +195,9 @@ class Ao3Template:
                 "lemon rating stickers"
             ))
         if credits:
-            credits = [TemplateAux.get_a_href(link, name) for link, name in credits]
-        content = TemplateAux.get_li(credits)
+            credits = [self.get_a_href(link, name) for link, name in credits \
+                if not (link.startswith("__") or name.startswith("__"))]
+        content = self.get_li(credits)
         return self._get_sub_section("Additional credits", content)
 
     def _get_content_notes(self):
@@ -234,9 +226,9 @@ class Ao3Template:
             ],
             "email": "annabelle.myrt@gmail.com"
         }
-        info["socials"] = TemplateAux.get_enum_links(info["socials"])
+        info["socials"] = self.get_enum_links(info["socials"])
         info = [f'''{key}: {value}''' for key, value in info.items()]
-        content = TemplateAux.get_li(info)
+        content = self.get_li(info)
         return self._get_sub_section("Contact info", content)
 
     def _get_what_to_say(self):
@@ -263,7 +255,9 @@ class Ao3Template:
 
     def _get_reply_policy(self):
         """ Reply policy section """
-        content = "Leaving me comments is kind of like starting a snail mail exchange in reply to a message in a bottle. I might not answer quickly (as in, it… could take me a few months…) but I will eventually!"
+        content = "Leaving me comments is kind of like starting a snail mail exchange in " \
+            + "reply to a message in a bottle. I might not answer quickly (as in, it… could " \
+            + "take me a few months…) but I will eventually!"
         return self._get_sub_section("When to expect a reply", content)
 
     def _get_feedback(self):
@@ -277,10 +271,10 @@ class Ao3Template:
 
     def _get_cover_art(self):
         """ Cover art """
-        content = f'''<p align="center">{TemplateAux.get_img(self._info["IA Cover Link"],
+        content = f'''<p align="center">{self.get_img(self._info["IA Cover Link"],
             width=250)}'''
         if self._info["Cover Artist"]:
-            content += f'''<br>\nCover art by {TemplateAux.get_enum_links(self._info["Cover Artist"])}'''
+            content += f'''<br>\nCover art by {self.get_enum_links(self._info["Cover Artist"])}'''
         content += "</p>"
         return content
 

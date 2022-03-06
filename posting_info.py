@@ -7,6 +7,7 @@ and templates
 
 import yaml
 import pandas
+from datetime import date
 from template_filler import Ao3Template
 from template_filler import DWTemplate
 from html_extractor import HTMLExtractor
@@ -19,32 +20,36 @@ class WorkInfo:
         - ... use "saved" mode to load info from saved info file
         - afterward, use update_info(category, content) to update the info from outside
     - ao3 template, using Ao3Template, saved in the ao3 template file, create_ao3_template
-    - dw template, using DWTemplate, saved in the dw template file, create_dw_template
+    - dw template, using DWTemplate, saved in the dw template file or mass xpost file,
+        create_dw_template
     - tracker info, not yet implemented TODO, save_tracker_info """
 
+    mass_xpost_file = "../../../Musique/2.5 to post/dw.txt"
+
     default_values = {
+        # filled automatically at some point
         "Language": "English",
         "Work text": "__WORK_TEXT",
         "Podfic Link": "__PODFIC_LINK",
         "Posting Date": "__POSTING_DATE",
         "Creator/Pseud(s)": [("ao3.org/users/Annapods", "Annapods")],
+        "Audio Length": "__AUDIO_LENGTH",
+        "IA Link": "__URL",
+        "IA Streaming Links": ["__URL1", "__URL2"],
+        "IA Cover Link": "__URL",
+        "GDrive Link": "__URL",
 
-        # Additional info to fill
+        # to fill by hand
         "Notes at the beginning": "",
         "Notes at the end": "",
         "Add co-creators?": [("__URL", "__PSEUD")],
         "Cover Artist": [],
         "Work Type": "podfic",
         "Media Category": "__MEDIA_CATEGORY",
-        "Audio Length": "__AUDIO_LENGTH",
         "Occasion": "none",
         "Tracker Notes": "",
         "Tracker Notes (cont)": "",
         "Content Notes": "If I forgot or misworded anything, please let me know!",
-        "IA Link": "__URL",
-        "IA Streaming Links": ["__URL1", "__URL2"],
-        "IA Cover Link": "__URL",
-        "GDrive Link": "__URL",
         "BP": False,
         "Credits": [("__URL", "__TEXT")],
         "Stickers": False
@@ -93,6 +98,11 @@ class WorkInfo:
             if key not in self.info:
                 self.info[key] = value
 
+    def add_posting_date(self):
+        """ Saves the current date as the posting date
+        https://stackoverflow.com/questions/32490629/getting-todays-date-in-yyyy-mm-dd-in-python """
+        self.update_info("Posting Date", date.today().strftime('%d-%m-%Y'))
+
 
     ### Additional tags
 
@@ -137,9 +147,11 @@ class WorkInfo:
         for (min_hours, min_minutes, tag) in conditions:
             if hours >= min_hours and minutes >= min_minutes:
                 return tag
+        assert False, "BUG"
+        return None
 
 
-    ### Ao3 work text and summary
+### Ao3 work text and summary
 
     def create_ao3_template(self):
         """ Saves all ao3 posting info to the template file, ready to go! """
@@ -173,21 +185,30 @@ class WorkInfo:
 
         template = pandas.DataFrame([template])
         template.to_csv(self._project.files.template.ao3)
-        self._vprint(f'done!Saved in {self._project.files.template.ao3}\n')
+        self._vprint(f'done! Saved in {self._project.files.template.ao3}\n')
 
 
     ### DW post
 
-    def create_dw_template(self):
-        """ Saves all dw posting info to the template file, ready to go! """
+    def create_dw_template(self, mass_xpost=False):
+        """ Saves all dw posting info to the template file, ready to go!
+        if add_to_file, concatenates the html to the relevant file to enable mass posting later """
+
         self._vprint(f'Creating dw template...', end=" ")
         self._check_and_format_info(posted=True)
+        post = DWTemplate(self.info).post
 
-        template = DWTemplate(self.info)
-        with open(self._project.files.template.dw, 'w') as f:
-            f.write(template.post)
+        if mass_xpost:
+            self.vprint(f"saving in {WorkInfo.mass_xpost_file}...", end=" ")
+            with open(WorkInfo.mass_xpost_file, 'a') as file:
+                post += """\n\n\n<p align="center">...</p>\n\n\n"""
+                file.write(post)
+        else:
+            self.vprint(f"saving in {self._project.files.template.dw}...", end=" ")
+            with open(self._project.files.template.dw, 'w') as file:
+                file.write(post)
 
-        self._vprint(f'done!')
+        self._vprint('done!')
 
 
     ### Tracker

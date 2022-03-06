@@ -36,8 +36,8 @@ class GDriveUploader:
         self._drive = GoogleDrive(gauth)
 
         # Getting shareable folder
-        self.get_podfic_folder()
-        self.set_up_permission()
+        self._get_podfic_folder()
+        self._set_up_permission()
 
         # Saving link to folder in work info
         self._work.update_info("GDrive Link", self.link)
@@ -66,7 +66,7 @@ class GDriveUploader:
     def upload_info(self):
         """ Uploads ao3 post info (csv file) to the project's gdrive folder """
         self._vprint("Uploading podfic info to gdrive...")
-        self.upload_file(self._project.files.template.ao3)
+        self.upload_file(self._project.files.info)
         self._vprint("done!\n")
 
     def upload_file(self, path):
@@ -80,7 +80,7 @@ class GDriveUploader:
         file.Upload()
 
 
-    def get_child_id(self, parent_id, child_name):
+    def _get_child_id(self, parent_id, child_name):
         """ Gets the id of the first element with the given name and parent
 
         :args parent_id: id of the parent folder
@@ -100,21 +100,21 @@ class GDriveUploader:
         return None
 
 
-    def get_podfic_folder(self):
+    def _get_podfic_folder(self):
         """ Get (or create) the project's gdrive folder
         Naming convention: [FANDOM] Title """
 
         # Get the general podfic fodler
         folders = GDriveUploader.podfic_folder_path.split("/")
-        parent_id = self.get_child_id("root", folders[0])
+        parent_id = self._get_child_id("root", folders[0])
         for child_name in folders[1:]:
-            parent_id = self.get_child_id(parent_id, child_name)
+            parent_id = self._get_child_id(parent_id, child_name)
 
         title = f'[{self._project.fandom.upper()}] {self._project.title.safe_for_path}'
 
         # drive.CreateFile does not actually upload the file, only creates the object
         # If the filder already exists, just get it
-        folder_id = self.get_child_id(parent_id, title)
+        folder_id = self._get_child_id(parent_id, title)
         if folder_id:
             self._folder = self._drive.CreateFile({'id': folder_id})
         # Else, create it
@@ -128,7 +128,7 @@ class GDriveUploader:
         self._folder.Upload()
 
 
-    def set_up_permission(self):
+    def _set_up_permission(self):
         """ Make the folder accessible by everyone as readers, get the shareable link """
 
         # Open up sharing permission

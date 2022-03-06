@@ -42,16 +42,17 @@ def post(verbose=True):
         title="NYT Best Seller List Don't Mean Shit (To Joel Farabee)",
         verbose=verbose)
     work = WorkInfo(project, mode="saved", verbose=verbose)
+    work.add_posting_date()
 
-    # Editing audio files for names and metadata
-    audio = AudioHandler(project, work, verbose=verbose)
+    # # Editing audio files for names and metadata
+    # audio = AudioHandler(project, work, verbose=verbose)
     # audio.add_cover_art()
     # audio.rename_wip_audio_files()
     # audio.update_metadata()
     # audio.save_audio_length()
     # project.update_file_paths()
 
-    # Uploading to gdrive and ia
+    # # Uploading to gdrive and ia
     # gdrive_uploader = GDriveUploader(project, work, verbose=verbose)
     # gdrive_uploader.upload_audio()
     # gdrive_uploader.upload_cover()
@@ -59,10 +60,10 @@ def post(verbose=True):
     # ia_uploader.upload_audio()
     # ia_uploader.upload_cover()
 
-    # Posting to ao3
-    work.create_ao3_template()
-    ao3_poster = Ao3Poster(project, work, verbose=verbose)
-    ao3_poster.post_podfic()
+    # # Posting to ao3
+    # work.create_ao3_template()
+    # ao3_poster = Ao3Poster(project, work, verbose=verbose)
+    # ao3_poster.post_podfic()
 
     # # Uploading ao3 info to gdrive and ia
     # gdrive_uploader.upload_info()
@@ -70,9 +71,9 @@ def post(verbose=True):
     # ia_uploader.upload_info()
 
     # Posting to dw
-    work.create_dw_template()
-    dw_poster = DWPoster(project, work, verbose=verbose)
-    dw_poster.post_podfic()
+    work.create_dw_template(mass_xpost=True)
+    # dw_poster = DWPoster(project, work, verbose=verbose)
+    # dw_poster.post_podfic()
 
     # Saving tracker info
     work.save_tracker_info()
