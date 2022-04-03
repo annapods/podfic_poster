@@ -23,7 +23,7 @@ class HTMLExtractor:
         self._load_html(html_file_paths)
 
 
-    def _vprint(self, string, end="\n"):
+    def _vprint(self, string:str, end:str="\n"):
         """ Print if verbose """
         if self._verbose:
             print(string, end=end)

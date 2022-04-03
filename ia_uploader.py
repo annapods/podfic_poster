@@ -32,7 +32,7 @@ class IAUploader:
         }
 
 
-    def _vprint(self, string, end="\n"):
+    def _vprint(self, string:str, end:str="\n"):
         """ Print if verbose """
         if self._verbose:
             print(string, end=end)

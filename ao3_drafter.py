@@ -17,7 +17,7 @@ class Ao3Poster:
         self._project = project_info
         self._work = work_info
 
-    def _vprint(self, string, end="\n"):
+    def _vprint(self, string:str, end:str="\n"):
         """ Print if verbose """
         if self._verbose:
             print(string, end=end)

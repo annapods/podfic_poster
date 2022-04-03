@@ -52,12 +52,12 @@ class DWTemplate(Template):
     """ DW template creator! """
     
     def __init__(self, info, verbose=True):
-        """ info is the dict of work info, not the WorkInfo object itself """
+        """ info is the dict of work info, not the ProjectData object itself """
         self._verbose = verbose
         self._info = info
         self.post = self._get_post()
 
-    def _vprint(self, string, end="\n"):
+    def _vprint(self, string:str, end:str="\n"):
         """ Print if verbose """
         if self._verbose:
             print(string, end=end)
@@ -104,7 +104,7 @@ class Ao3Template(Template):
         self.summary = self._get_ao3_summary()
         self.work_text = self._get_ao3_work_text()
 
-    def _vprint(self, string, end="\n"):
+    def _vprint(self, string:str, end:str="\n"):
         """ Print if verbose """
         if self._verbose:
             print(string, end=end)

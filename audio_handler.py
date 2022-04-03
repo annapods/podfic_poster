@@ -28,7 +28,7 @@ class AudioHandler:
         self._file_title = self.get_audio_file_title(safe_for_path=True)
 
 
-    def _vprint(self, string, end="\n"):
+    def _vprint(self, string:str, end:str="\n"):
         """ Print if verbose """
         if self._verbose:
             print(string, end=end)

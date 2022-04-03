@@ -37,7 +37,7 @@ class DWPoster:
         self._dw = f'{settings["dreamwidth_username"]}+PIN@post.dreamwidth.org'
 
 
-    def _vprint(self, string, end="\n"):
+    def _vprint(self, string:str, end:str="\n"):
         """ Print if verbose """
         if self._verbose:
             print(string, end=end)
