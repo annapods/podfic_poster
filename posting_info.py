@@ -5,12 +5,13 @@ Extracted from the parent work(s) html or from a saved info file, with calls to 
 and templates
 """
 
+from datetime import date
 import yaml
 import pandas
-from datetime import date
 from template_filler import Ao3Template
 from template_filler import DWTemplate
 from html_extractor import HTMLExtractor
+from fandom_taxonomy import FandomTaxonomy
 
 
 class WorkInfo:
@@ -67,6 +68,7 @@ class WorkInfo:
         if mode == "extract":
             extractor = HTMLExtractor(self._project.files.fic, verbose)
             self.info = extractor.extract_html_data()
+            self._get_preferred_fandom_tags()
             self._add_default_fields()
             self._save_info()
 
@@ -150,6 +152,11 @@ class WorkInfo:
         assert False, "BUG"
         return None
 
+    def _get_preferred_fandom_tags(self):
+        """ Get the preferred version of the fandom tags using FandomTaxonomy. """
+        fandom_taxonomy = FandomTaxonomy()
+        preferred = fandom_taxonomy.get_preferred_fandom_tags(self.info["Fandoms"])
+        self.update_info("Fandoms", preferred)
 
 ### Ao3 work text and summary
 

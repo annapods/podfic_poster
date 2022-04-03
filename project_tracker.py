@@ -63,7 +63,7 @@ class ProjectTracker:
         - raw
         - safe_for_path
         - abr
-    files
+    - files
         - info
         - template
             - ao3
@@ -83,12 +83,12 @@ class ProjectTracker:
     wips_folder = "../../../Musique/2.5 to post"
     tracker = ""
 
-    def __init__(self, fandom="", title="", folder="", verbose=True):
+    def __init__(self, fandom_abr="", full_title="", folder="", verbose=True):
         """ Any info left empty will be infered or asked in the command line interface """
         self._verbose = verbose
 
-        self.fandom = fandom if fandom else input("fandom abr: ")
-        self.title = self._get_title(title)
+        self.fandom = fandom_abr if fandom_abr else input("fandom abr: ")
+        self.title = self._get_title(full_title)
         self.folder = self._get_folder(folder)
         # TODO WorkInfo + ProjectTracker -> ProjectID, ProjectFiles, ProjectData
 
@@ -122,8 +122,7 @@ class ProjectTracker:
             if choice == "quit":
                 print("bye!")
                 sys.exit()
-                return None
-            self._get_folder(choice)
+            return self._get_folder(choice)
 
         else:
             print(f"/!\\ that folder doesn't exist yet: {folder}")
@@ -138,7 +137,6 @@ class ProjectTracker:
             if choice == "quit":
                 print("bye!")
                 sys.exit()
-                return None
             return self._get_folder(choice)
 
 
@@ -153,11 +151,12 @@ class ProjectTracker:
 
         def get_title_abr(title):
             """ Returns the project abbreviation, created from the title initials """
-            title = title.lower()
-            title = re.sub(r'[^\w^ ]', '', title)
-            words = title.split(" ")
-            initials = [word[0] for word in words]
-            abr = "".join(initials)
+            title = title.lower()  # to lowercase
+            title = re.sub(r'[^\w^ ]', '', title)  # remove non-alpha characters
+            words = title.split(" ")  # split on spaces
+            words = [word.strip() for word in words if word]  # remove any additional whitespaces
+            initials = [word[0] for word in words]  # get initials
+            abr = "".join(initials)  # get string
             return abr
 
         raw_title = raw_title if raw_title else input("project title: ")
@@ -168,7 +167,9 @@ class ProjectTracker:
 
 
     def update_file_paths(self):
-        """ Saves the paths to the various project files to the tracker """
+        """ Saves the paths to the various project files to the tracker
+        For optional files like cover art and audio files, looks for existing files
+        Which means that it does not generate 'future' paths """
 
         self.files.info = os.path.join(self.folder, f'{self.title.abr} info.yaml')
         self.files.template.dw = os.path.join(self.folder, f'{self.title.abr} dw.txt')

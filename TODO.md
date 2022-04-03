@@ -4,10 +4,12 @@
 [x] edit audio metadata
 [x] upload to gdrive
 [x] upload to ia
+    [-] hide from search engines (noindex)
 [x] upload to ao3
-    [-] fix li lists
-    [-] fix default credits in work text
 [-] upload to dw
+    [x] save filled template
+[-] fandom taxonomy
+    [-] add tracker tag to work info somehow
+    [-] test
 [-] fill tracker (don't forget the posting date)
-[-] fandom taxonomy -> abr, prefered canonical tag, umbrella tracker tag
 [-] ao3downloader in requirements -> possible to automatize download?

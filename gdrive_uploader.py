@@ -23,6 +23,7 @@ class GDriveUploader:
     - upload_info()
     """
 
+    # The name of the folder with all the podfic subfolders
     podfic_folder_path = "podfic files"
 
     def __init__(self, project_info, work_info, verbose=True):

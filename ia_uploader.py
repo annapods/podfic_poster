@@ -10,7 +10,7 @@ from internetarchive import upload, get_item
 class IAUploader:
     """ Internet Archive uploading helper!
     Uses the official internetarchive API
-    
+
     You can call:
     - upload_audio
     - upload_cover
@@ -28,6 +28,7 @@ class IAUploader:
             'mediatype': 'audio',
             'creator': 'Annapods',
             'subject': 'podfic',
+            'noindex': 'true'
         }
 
 
@@ -153,3 +154,16 @@ class IAUploader:
         item = get_item(self._identifier)
         _ = item.modify_metadata(metadata={'description': description})
         self._vprint("done!\n")
+
+
+# #  For batch edits, use search_items
+# #  Example: hiding everything from search engines retroactively
+# from internetarchive import search_items
+# for item in search_items('uploader:annabelle.myrt@gmail.com').iter_as_items():
+#     print()
+#     print(item.metadata)
+#     print()
+#     item.modify_metadata(dict(noindex='true'))
+#     print(item.metadata)
+#     print()
+#     print("---------------------")
