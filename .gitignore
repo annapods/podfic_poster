@@ -1,3 +1,9 @@
+# Fandom taxonomy database
+fandom_taxonomy.sql
+
+# IDE stuff
+.vscode
+
 # Setting files
 client_secrets.json
 settings.json

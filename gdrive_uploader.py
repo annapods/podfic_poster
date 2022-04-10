@@ -26,10 +26,9 @@ class GDriveUploader:
     # The name of the folder with all the podfic subfolders
     podfic_folder_path = "podfic files"
 
-    def __init__(self, project_info, work_info, verbose=True):
+    def __init__(self, project_handler, verbose=True):
         self._verbose = verbose
-        self._project = project_info
-        self._work = work_info
+        self._project = project_handler
 
         # Connection to API
         gauth = GoogleAuth()
@@ -41,7 +40,7 @@ class GDriveUploader:
         self._set_up_permission()
 
         # Saving link to folder in work info
-        self._work.update_info("GDrive Link", self.link)
+        self._project.metadata.update_md("GDrive Link", self.link)
 
 
     def _vprint(self, string:str, end:str="\n"):
@@ -64,10 +63,10 @@ class GDriveUploader:
             self.upload_file(path)
         self._vprint("done!\n")
 
-    def upload_info(self):
-        """ Uploads ao3 post info (csv file) to the project's gdrive folder """
+    def upload_metadata(self):
+        """ Uploads metadata file (yaml) to the project's gdrive folder """
         self._vprint("Uploading podfic info to gdrive...")
-        self.upload_file(self._project.files.info)
+        self.upload_file(self._project.files.metadata)
         self._vprint("done!\n")
 
     def upload_file(self, path):
@@ -111,7 +110,7 @@ class GDriveUploader:
         for child_name in folders[1:]:
             parent_id = self._get_child_id(parent_id, child_name)
 
-        title = f'[{self._project.fandom.upper()}] {self._project.title.safe_for_path}'
+        title = f'[{self._project.id.fandom_abr.upper()}] {self._project.id.safe_title}'
 
         # drive.CreateFile does not actually upload the file, only creates the object
         # If the filder already exists, just get it

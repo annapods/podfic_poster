@@ -4,7 +4,6 @@
 from os.path import join, exists
 from os import mkdir, listdir
 import sys
-from project_tracker import ProjectID
 
 
 class CompressedFileTracker:
@@ -25,6 +24,7 @@ class TemplateFileTracker:
 
 class FileTracker:
     """ Keeps track of project files:
+    - folder
     - metadata
     - templates
         - ao3
@@ -46,10 +46,10 @@ class FileTracker:
     # Path to the podfic tracker file, not yet implemented
     tracker = ""
     # Path to the DW file for accumulating podfics to xpost all at once
-    dw_mass_xpost = join(wips_folder, "dw.txt")
+    dw_mass_xpost_file = join(wips_folder, "dw.txt")
 
 
-    def __init__(self, project_id:ProjectID, verbose:bool=True):
+    def __init__(self, project_id, verbose=True):
         self._verbose = verbose
         self._id = project_id
         self.folder = self._get_folder()
@@ -82,7 +82,7 @@ class FileTracker:
             files = [
                 join(folder, file)
                 for file in listdir(folder)
-                if contains in file and file.endswith(endswith)
+                if contains.lower() in file.lower() and file.endswith(endswith)
             ]
             return files
 
@@ -93,6 +93,16 @@ class FileTracker:
         self.cover.compressed = get_files(self._id.title_abr, ".png")
         self.cover.raw = get_files(self._id.title_abr, ".svg")
         self.fic = get_files(endswith=".html")
+    
+        # print("title abr", self._id.title_abr)
+        # print("full title", self._id.safe_title)
+        # print("mp3 wip", self.audio.compressed.unformatted)
+        # print("mp3 final", self.audio.compressed.formatted)
+        # print("wav wip", self.audio.raw.unformatted)
+        # print("wav final", self.audio.raw.formatted)
+        # print("cover png", self.cover.compressed)
+        # print("cover svg", self.cover.raw)
+        # print("fic", self.fic)
 
 
     def _get_folder(self, folder:str=""):

@@ -7,7 +7,9 @@ and templates
 
 from datetime import date
 import yaml
-import collections.UserDict
+from collections import UserDict
+from datetime import date
+import yaml
 import pandas
 from template_filler import Ao3Template
 from template_filler import DWTemplate
@@ -15,7 +17,7 @@ from html_extractor import HTMLExtractor
 from fandom_taxonomy import FandomTaxonomy
 
 
-class ProjectMetadata(collections.UserDict):
+class ProjectMetadata(UserDict):
     """ Keeps track of all project metadata, aka, mostly ao3 metadata
 
     at initialisation:
@@ -25,7 +27,6 @@ class ProjectMetadata(collections.UserDict):
     afterward, use:
     - update(category, content) to update the info from outside
     - TODO create templates stuff
-    
     """
 
     mass_xpost_file = "../../../Musique/2.5 to post/dw.txt"
@@ -77,6 +78,7 @@ class ProjectMetadata(collections.UserDict):
             self._get_fandom_info()
             # Save the metadata
             self._save()
+            print(self["Category"])
 
         if mode == "saved":
             # Load from saved file
@@ -94,9 +96,9 @@ class ProjectMetadata(collections.UserDict):
         with open(self._save_as, 'w') as file:
             yaml.safe_dump(self.data, file)
 
-    def update(self, category, content):
+    def update_md(self, category, content):
         """ Updates one of the fields and saves the to the file
-        NOTE/WARNING same name as dict method update """
+        NOTE update_md in order not to overwrite dict update method. """
         assert category in self, "/!\\ work category doesn't exist"
         self[category] = content
         self._save()
@@ -104,18 +106,19 @@ class ProjectMetadata(collections.UserDict):
     def add_posting_date(self):
         """ Saves the current date as the posting date
         https://stackoverflow.com/questions/32490629/getting-todays-date-in-yyyy-mm-dd-in-python """
-        self.update("Posting Date", date.today().strftime('%d-%m-%Y'))
+        self.update_md("Posting Date", date.today().strftime('%d-%m-%Y'))
 
 
     ### Additional tags
 
-    def _add_podfic_tags(self):
+    def add_podfic_tags(self):
         """ Adds the missing podfic tags to the additional tags """
-        for tag in [
-                "Podfic", "Audio Format: MP3", "Audio Format: Streaming"
-            ] + [self._get_audio_length_tag()]:
-            if tag not in self["Additional Tags"]:
-                self["Additional Tags"].append(tag)
+        tags = self["Additional Tags"]
+        for tag in ["Podfic", "Audio Format: MP3", "Audio Format: Streaming"] + \
+            [self._get_audio_length_tag()]:
+            if tag not in tags:
+                tags.append(tag)
+        self.update_md("Additional Tags", tags)
 
 
     def _get_audio_length_tag(self):
@@ -157,25 +160,12 @@ class ProjectMetadata(collections.UserDict):
         """ Get the preferred version of the fandom tags and the media category using
         FandomTaxonomy. """
         fandom_taxonomy = FandomTaxonomy()
-        preferred, category = fandom_taxonomy.get_info(self["Fandoms"])
-        self.update("Fandoms", preferred)
-        self.update("Media Category", category)
+        preferred_tags, main_tag, abr, category = fandom_taxonomy.get_all_info(self["Fandoms"])
+        self.update_md("Fandoms", preferred_tags)
+        self.update_md("Media Category", category)
 
 
-    ##### TODO where does that part go??
-
-    from datetime import date
-    import yaml
-    import pandas
-    from template_filler import Ao3Template
-    from template_filler import DWTemplate
-    from html_extractor import HTMLExtractor
-    from fandom_taxonomy import FandomTaxonomy
-
-
-    ### Checks and formatting
-
-    def _check_and_format(self, posted=False):
+    def check_and_format(self, posted=False):
         """ Double checks everything is ready to fill the templates """
         at_most_one_categories = ["Summary", "Rating", "IA Link", "GDrive Link",
             "Summary", "Audio Length"]
@@ -223,74 +213,7 @@ class ProjectMetadata(collections.UserDict):
                 "Underage"
         ], "/!\\ check Archive Warnings"
     
-        for category in self["Categories"]:
+        for category in self["Category"]:
             assert category in [
                 "F/F", "F/M", "Gen", "M/M", "Multi", "Other"
             ], "/!\\ check Categories"
-
-
-    def create_ao3_template(self):
-        """ Saves all ao3 posting info to the template file, ready to go! """
-        self._vprint(f'Creating ao3 template...', end=" ")
-        self.metadata._check_and_format_info()
-        self._add_podfic_tags()
-
-        template = Ao3Template(self.info)
-        self.info["Summary"] = template.summary
-        self.info["Work text"] = template.work_text
-        self._save_info()
-
-        template = {}
-        template["Work Title"] = f'[{self.info["Work Type"]}] {self._project.title.raw}'
-
-        for key in ["Fandoms", "Relationships",
-            "Characters", "Additional Tags", "Archive Warnings", "Categories"]:
-            template[key] = ", ".join(self.info[key])
-
-        for key in ["Creator/Pseud(s)", "Add co-creators?"]:
-            if self.info[key]:
-                pseuds = [pseud for _, pseud in self.info[key] if not pseud.startswith("__")]
-                template[key] = ", ".join(pseuds)
-
-        for key in ["Summary", "Notes at the beginning", "Notes at the end", "Language",
-            "Work text", "Parent Work URL", "Rating"]:
-            template[key] = self.info[key]
-
-        if isinstance(self.info["Parent Work URL"], list):
-            template["Parent Work URL"] = template["Parent Work URL"][0]
-
-        template = pandas.DataFrame([template])
-        template.to_csv(self._project.files.template.ao3)
-        self._vprint(f'done! Saved in {self._project.files.template.ao3}\n')
-
-
-    ### DW post
-
-    def create_dw_template(self, mass_xpost=False):
-        """ Saves all dw posting info to the template file, ready to go!
-        if mass_xpost, concatenates the html to the relevant file to enable mass posting later """
-
-        self._vprint(f'Creating dw template...', end=" ")
-        self._check_and_format_info(posted=True)
-        post = DWTemplate(self.data).post()
-
-        if mass_xpost:
-            self._vprint(f"saving in {ProjectData.mass_xpost_file}...", end=" ")
-            with open(ProjectData.mass_xpost_file, 'a') as file:
-                post += """\n\n\n<p align="center">...</p>\n\n\n"""
-                file.write(post)
-        else:
-            self._vprint(f"saving in {self._project.files.template.dw}...", end=" ")
-            with open(self._project.files.template.dw, 'w') as file:
-                file.write(post)
-
-        self._vprint('done!')
-
-
-    ### Tracker
-
-    def save_tracker_info(self):
-        """ TODO... """
-        self._vprint('saving tracker info...', end=" ")
-        pass
-        self._vprint('done!')

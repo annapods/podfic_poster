@@ -17,14 +17,13 @@ class IAUploader:
     - upload_info
     - update_descrition """
 
-    def __init__(self, project_info, work_info, verbose=True):
+    def __init__(self, project_handler, verbose=True):
         self._verbose = verbose
-        self._project = project_info
-        self._work = work_info
+        self._project = project_handler
         self._set_identifier(self._generate_identifier())
         self._metadata = {
             'collection': 'opensource_audio',
-            'title': self._project.title.raw,
+            'title': self._project.id.raw_title,
             'mediatype': 'audio',
             'creator': 'Annapods',
             'subject': 'podfic',
@@ -68,13 +67,14 @@ class IAUploader:
                     self._set_identifier(identifier)
 
         # Save the link to the item in the work info
-        self._work.update_info("IA Link", f"https://archive.org/details/{self._identifier}")
+        self._project.metadata.update_md("IA Link",
+            f"https://archive.org/details/{self._identifier}")
 
 
     def _generate_identifier(self):
         """ Generates and returns an ia item identifier based on fandom and work title """
-        title = self._project.title.raw
-        fandom = self._project.fandom
+        title = self._project.id.title_abr
+        fandom = self._project.id.fandom_abr
 
         # Concatenate fandom and title
         identifier = f"{fandom} {title}"
@@ -119,7 +119,7 @@ class IAUploader:
         links = ["https://archive.org/download/" \
             + f"{self._identifier}/{os.path.basename(path)}"
             for path in self._project.files.audio.compressed.formatted]
-        self._work.update_info("IA Streaming Links", links)
+        self._project.metadata.update_md("IA Streaming Links", links)
         self._vprint("done!\n")
 
 
@@ -131,14 +131,14 @@ class IAUploader:
             self._upload_file(path)
         link = "https://archive.org/download/" \
             + f"{self._identifier}/{os.path.basename(self._project.files.cover.compressed[0])}"
-        self._work.update_info("IA Cover Link", link)
+        self._project.metadata.update_md("IA Cover Link", link)
         self._vprint("done!\n")
 
 
-    def upload_info(self):
-        """ Uploads the info file (ao3 csv) to the ia item """
+    def upload_metadata(self):
+        """ Uploads the metadata file to the ia item """
         self._vprint("Uploading podfic info to ia...")
-        self._upload_file(self._project.files.template.ao3)
+        self._upload_file(self._project.files.metadata)
         self._vprint("done!\n")
 
 
@@ -146,11 +146,12 @@ class IAUploader:
         """ Updates item description with ao3 link """
         self._vprint("Adding podfic link to ia...", end=" ")
 
-        assert "Podfic Link" in self._work.info \
-            and not self._work.info["Podfic Link"].startswith("__"), "/!\ no ao3 link yet?"
+        assert "Podfic Link" in self._project.metadata \
+            and not self._project.metadata["Podfic Link"].startswith("__"), \
+            "/!\\ no ao3 link yet?"
 
         description = '<strong>Link to podfic:</strong> ' \
-            + f'<a href="{self._work.info["Podfic Link"]}"></a>'
+            + f'<a href="{self._project.metadata["Podfic Link"]}"></a>'
         item = get_item(self._identifier)
         _ = item.modify_metadata(metadata={'description': description})
         self._vprint("done!\n")

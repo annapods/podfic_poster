@@ -127,7 +127,7 @@ class HTMLExtractor:
 
             "Archive Warnings": self._get_tags("Archive Warning"),
             "Rating": self._get_tags("Rating"),
-            "Categories": self._get_tags("Category"),
+            "Category": self._get_tags("Category"),
             "Fandoms": self._get_tags("Fandom"),
             "Relationships": self._get_tags("Relationship"),
             "Characters": self._get_tags("Character"),

@@ -6,16 +6,17 @@ import json
 from ao3_poster.ao3 import login, logout, post
 from csv import DictReader
 
+from template_filler import Ao3Template
+
 
 class Ao3Poster:
     """ Ao3 posting helper!
     Uses ao3-poster to create an ao3 draft
     https://ao3-poster.readthedocs.io/en/latest/index.html """
 
-    def __init__(self, project_info, work_info, verbose=True):
+    def __init__(self, project_handler, verbose=True):
         self._verbose = verbose
-        self._project = project_info
-        self._work = work_info
+        self._project = project_handler
 
     def _vprint(self, string:str, end:str="\n"):
         """ Print if verbose """
@@ -60,15 +61,14 @@ class Ao3Poster:
         session at each call. """
         self._vprint("Drafting podfic post to ao3...", end=" ")
 
+        # Get data
+        data = self._get_ao3_data()
+
         # Get session
         session = self._get_session()
 
-        # Get work post info
-        reader = DictReader(self._project.files.template.ao3)
-        rows = list(reader)
-
         # Create post
-        link = post(session, rows[0], work_text_template=None)
+        link = post(session, data, work_text_template=None)
         # TODO (potentially): the ao3-poster code isn't that long, and includes yet another
         # reformatting from the required csv template to some other data structure. Could be
         # more convenient to go directly from our yaml structure to what is needed for posting?
@@ -77,11 +77,45 @@ class Ao3Poster:
         logout(session)
 
         # Save the link to the project info
-        self._work.update_info(category="Podfic Link", content=link)
+        self._project.metadata.update_md(category="Podfic Link", content=link)
 
         self._vprint("done!\n")
 
 
+    def _get_ao3_data(self):
+        """ Creates ao3 posting data dict according to ao3-poster format, using Ao3Template to
+        format body and summary of the post """
+        self._vprint('Creating ao3 template...', end=" ")
+        metadata = self._project.metadata  # just for convenience, bc it's pretty long...
+        metadata.check_and_format(posted=False)
+        metadata.add_podfic_tags()
+
+        template = Ao3Template(self._project)
+        metadata.update_md("Summary", template.summary)
+        metadata.update_md("Work text", template.work_text)
+
+        data = {}
+        data["Work Title"] = f'[{metadata["Work Type"]}] ' + \
+            f'{self._project.id.raw_title}'
+
+        for key in ["Fandoms", "Relationships",
+            "Characters", "Additional Tags", "Archive Warnings", "Category"]:
+            data[key] = ", ".join(metadata[key])
+
+        for key in ["Creator/Pseud(s)", "Add co-creators?"]:
+            if metadata[key]:
+                pseuds = [pseud for _, pseud in metadata[key] if not pseud.startswith("__")]
+                data[key] = ", ".join(pseuds)
+
+        for key in ["Summary", "Notes at the beginning", "Notes at the end", "Language",
+            "Work text", "Parent Work URL", "Rating"]:
+            data[key] = metadata[key]
+
+        if isinstance(metadata["Parent Work URL"], list):
+            data["Parent Work URL"] = data["Parent Work URL"][0]
+
+        return data
+    
 
 # #  Code for drafting using the ao3-poster command line interface
 # #  Uses pexpect to interact with the cli, not ideal

@@ -51,11 +51,11 @@ class Template:
 class DWTemplate(Template):
     """ DW template creator! """
     
-    def __init__(self, info, verbose=True):
+    def __init__(self, project_handler, verbose=True):
         """ info is the dict of work info, not the ProjectData object itself """
         self._verbose = verbose
-        self._info = info
-        self.post = self._get_post()
+        self._info = project_handler.metadata
+        self.post_text = self._get_post()
 
     def _vprint(self, string:str, end:str="\n"):
         """ Print if verbose """
@@ -98,9 +98,9 @@ class DWTemplate(Template):
 class Ao3Template(Template):
     """ Filling the ao3 template """
 
-    def __init__(self, info, verbose=True):
+    def __init__(self, project_handler, verbose=True):
         self._verbose = verbose
-        self._info = info
+        self._info = project_handler.metadata
         self.summary = self._get_ao3_summary()
         self.work_text = self._get_ao3_work_text()
 
@@ -118,10 +118,10 @@ class Ao3Template(Template):
 
         summary = self._info["Summary"]
         if self._info["Audio Length"] not in summary:
-            summary = f'''{summary}\n\n{self._info["Audio Length"]}'''
+            summary += f'\n\n{self._info["Audio Length"]}'
         if self._info["Writer"] and " :: Written by " not in summary:
             authors = self.get_enum_links(self._info["Writer"])
-            summary =  f'''{summary} :: Written by {authors}.'''
+            summary +=  f''' :: Written by {authors}.'''
         return summary
 
     def _get_section(self, title:str, parts:list):
@@ -135,8 +135,13 @@ class Ao3Template(Template):
     def _get_sub_section(self, title:str, content:str):
         """ Sub sections of big sections """
         template = ""
-        if content: template = f'''<p><strong>{title}:</strong><br>\n''' \
-        + content + "</p>"
+        if content and content.startswith("<li>"):  # an attempt at fixing whatever happens to
+            # <li> formatting somewhere between yaml and ao3...
+            template = f'''<p><strong>{title}:</strong>\n''' \
+            + content + "</p>"
+        elif content and not content.startswith("<li>"):
+            template = f'''<p><strong>{title}:</strong><br>\n''' \
+            + content + "</p>"
         return template
 
     def _get_ia_dl(self):
@@ -188,16 +193,16 @@ class Ao3Template(Template):
 
     def _get_additional_credits(self):
         """ Credits section """
-        credits = self._info["Credits"]
+        credit = self._info["Credits"]
         if self._info["Stickers"]:
-            credits.append((
+            credit.append([
                 "https://www.dropbox.com/sh/m594efbyu3kjrse/AACKZKGpiS0UqQZIdTXFSKoSa?dl=0",
                 "lemon rating stickers"
-            ))
-        if credits:
-            credits = [self.get_a_href(link, name) for link, name in credits \
+            ])
+        if credit:
+            credit = [self.get_a_href(link, name) for link, name in credit \
                 if not (link.startswith("__") or name.startswith("__"))]
-        content = self.get_li(credits)
+        content = self.get_li(credit)
         return self._get_sub_section("Additional credits", content)
 
     def _get_content_notes(self):
