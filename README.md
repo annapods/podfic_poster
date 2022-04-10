@@ -48,11 +48,18 @@ source .venv/bin/activate
 python main.py new
 will ask for fandom abbreviation, full project title and ao3 link
 link can be to a series or to a work
+will dowload the html, and create a metadata yaml file from the info in it
 
 ## post
 source .venv/bin/activate
 python main.py post
 will ask for fandom abbreviation and full project title
+will use the files in the folder and the info in the metadata file to:
+- edit metadata and cover art of audio files
+- upload to gdrive
+- upload to ia
+- draft to ao3
+- add dw post text to xpost file
 
 # class structure
 

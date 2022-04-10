@@ -1,3 +1,5 @@
+[-] test install
+[-] ao3downloader in requirements -> possible to automatize download?
 [x] download html
 [x] extract data
 [x] fill templates
@@ -11,7 +13,6 @@
 [-] fill tracker
     [-] add tracker tag to work info somehow
     [?] tracker in sqlite
-[-] ao3downloader in requirements -> possible to automatize download?
 [-] files handling after posting
     [-] delete unnecessary files (ask first)
     [-] rename folder with posting date
