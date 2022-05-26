@@ -1,43 +1,90 @@
-# podfic_poster
-A podfic posting helper
+# Podfic poster
 
-# set up
+A podfic posting helper!
 
-## venv
-cd to the repertory
+Mostly for me, but if it can be useful feel free? MIT license I guess? I'll love you forever if you help me improve it, it's a mess.
+
+Below is how to set it up, use it, and some details on the class structure.
+
+## Set up
+
+### Virtual environment
+
+Open up a terminal, cd to the repertory.
+
+Linux/Mac:
 ```python
 python3.7 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## ao3downloader
-download code at https://github.com/nianeyna/ao3downloader, place it in the folder, unzip
-move ao3download.py from the main folder to ao3downloader/actions, replacing the original file
-first time running it, it will ask for user name and password, and save them in settings.json
-WARNING saves settings in plain text, which is not at all secure... no idea how to do it
-differently though
-TODO is that circumvented yet? to test
+Windows:
+```python
+python3.7 -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-## internetarchive
+### Ao3 downloader
+
+Code at https://github.com/nianeyna/ao3downloader, but I'm using an older version that is compatible with python3.7 so...?? And actually, are there any changes to the original code or not?
+
+First time running it, it will ask for user name and password, and save them in settings.json.
+
+WARNING saves settings in plain text, which is not at all secure... no idea how to do it
+differently though.
+
+### Internet archive
+
 ```python
 ia configure
 ```
-will ask for email and password and save them in ~/.config/internetarchive/ia.ini
 
-## gdrive
-set up oauth: https://developers.google.com/workspace/guides/create-credentials#oauth-client-id
-add test users: https://console.developers.google.com/apis/credentials/consent?referrer=search&project=delta-entry-341918 (OAuth consent screen -> Test users)
+Will ask for email and password and save them in ~/.config/internetarchive/ia.ini.
 
-## ao3-poster
-will use the ao3-downloader settings, no need to do anything
+### Google drive
+
+- [Set up oauth](https://developers.google.com/workspace/guides/create-credentials#oauth-client-id)
+- [Add yourself as test users](https://console.developers.google.com/apis/credentials/consent?referrer=search&project=delta-entry-341918) (OAuth consent screen -> Test users)
+
+### Ao3 poster
+
+Will use the ao3-downloader settings, no need to do anything.
+
+### Adapting the rest
+
+- project_files_tracker.py: the path to the parent folder of all the project folders
+- ?? a lot
 
 
-# usage
+## Usage
 
-## naming conventions
-ex: "I don't wanna think anymore", Hockey RPF
-fandom abbreviation:    hrpf
+Posting is in two (or three, or four...) steps:
+
+[1] Automatically getting info from ao3 -> new
+    - Downloading the parent work(s)
+    - Extracting metadata from the html
+    - Creating the yaml file with that metadata and some placeholders
+[2] Adding your own info to that
+    - Editing the yaml file with any missing info
+    - Double-checking everything is named right so that the program will find all the files
+[3] Automatically uploading and posting and drafting -> post
+    - Uploading all the files to google drive and the internet archive
+    - Drafting the ao3 post
+    - Saving the dreamwidth html to a text file
+[4] Finishing up
+    - Double-checking the ao3 draft and hitting post
+    - Cross-posting to dreamwidth if you want
+    - Adding the work to your tracker
+    - Etc
+
+
+### Naming conventions
+
+For "I don't wanna think anymore", a Hockey RPF fic, the naming conventions would look something like this:
+
+fandom abbreviation:    HRPF
 project title:          I don't wanna think anymore
 project abbreviation:   idwta
 project folder:         hrpf - idwta
@@ -46,31 +93,41 @@ final audio files:      \[HRPF\] I don't wanna think anymore (1).mp3, ...
 cover files:            idwta.png, idwta.svg
 ...
 
-## new
+### New
+
+In a terminal, navigate to the root directory of the project and type:
+
+Linux/Mac:
+
 ```python
 source .venv/bin/activate
 python main.py new
 ```
-will ask for fandom abbreviation, full project title and ao3 link
-link can be to a series or to a work
-will dowload the html, and create a metadata yaml file from the info in it
 
-## post
+Windows:
+
+```python
+.venv\Scripts\activate
+python main.py new
+```
+
+The program will ask for fandom abbreviation, full project title and ao3 link. That link can be to a series or to a work. It will then ask for some fandom taxonomy stuff. That can be disabled by commenting out `self._get_fandom_info()` in project_metatada.py.
+
+### Post
+
+Terminal, blah blah, the same line changes if you're on Windows.
+
 ```python
 source .venv/bin/activate
 python main.py post
 ```
-will ask for fandom abbreviation and full project title
-will use the files in the folder and the info in the metadata file to:
-- edit metadata and cover art of audio files
-- upload to gdrive
-- upload to ia
-- draft to ao3
-- add dw post text to xpost file
 
-# class structure
+The program will ask for fandom abbreviation and full project title. It will complain if any info is missing from the yaml file.
 
-## new ProjectHandler
+## Class structure
+
+### new ProjectHandler
+
 -> init: link:str="", fandom_abr:str="", raw_title:str="", mode:str="saved"
 - id: ProjectID
     -> init: fandom_abr:str="", raw_title:str=""
@@ -107,7 +164,7 @@ will use the files in the folder and the info in the metadata file to:
 
 -> post
 
-## post
+### post
 - AudioHandler
     -> init: project_handler
     -> add_cover_art
@@ -141,18 +198,24 @@ will use the files in the folder and the info in the metadata file to:
     -> init: project_handler
     - post_text
 
-## FandomTaxonomy
--> get_all_info: original_tags:List[str] -> preferred_tags, abr, category
+### FandomTaxonomy
+- FandomTaxonomy
+-> get_all_info: original_tags:List[str] -> preferred_tags, main_tag, abr, categories
 -> close
-- AbrToCategory
+
+- FandomTaxonomySQLite(FandomTaxonomy)
+-> AbrToCategory
     - PRIMARY abr
     - category
-- MainToAbr
+-> MainToAbr
     - PRIMARY main_tag
     - AbrToCategories abr
-- PreferredToMain
+-> PreferredToMain
     - PRIMARY preferred_tags
     - MainToAbr main_tag
-- OriginalToPreferred
+-> OriginalToPreferred
     - PRIMARY original_tags
     - PreferredToMain preferred_tags
+
+- FandomTaxonomyCSV(FandomTaxonomy)
+-> columns: ["original tags", "preferred tags", "main tracking tag", "abbreviation", "categories"]

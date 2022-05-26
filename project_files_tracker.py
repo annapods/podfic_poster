@@ -74,7 +74,7 @@ class FileTracker:
 
 
     def update_file_paths(self):
-        """ Populates the known files by looks for existing files in the folder """
+        """ Populates the known files by looking for existing files in the folder """
 
         def get_files(contains:str="", endswith:str="", folder:str=self.folder):
             """ Looks for files in the given folder which name contains and ends with the
