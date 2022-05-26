@@ -99,7 +99,7 @@ class Ao3Poster:
             f'{self._project.id.raw_title}'
 
         for key in ["Fandoms", "Relationships",
-            "Characters", "Additional Tags", "Archive Warnings", "Category"]:
+            "Characters", "Additional Tags", "Archive Warnings", "Categories"]:
             data[key] = ", ".join(metadata[key])
 
         for key in ["Creator/Pseud(s)", "Add co-creators?"]:

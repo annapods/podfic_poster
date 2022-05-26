@@ -5,7 +5,7 @@ import datetime
 import taglib
 import os
 from mutagen.mp3 import MP3
-from mutagen.id3 import ID3, APIC
+from mutagen.id3 import ID3, APIC, ID3NoHeaderError
 
 
 def get_padded_track_number_string(track_number, total_tracks):
@@ -44,22 +44,20 @@ class AudioHandler:
     def _get_artist_tag(self):
         """ Returns a formatted string for the audio files' artist metadata field
         ex: "Podder1, Podder2 (w:Writer)" """
-        podders = []
-        if self._project.metadata["Creator/Pseud(s)"]:
-            podders.extend(self._project.metadata["Creator/Pseud(s)"])
-        if self._project.metadata["Add co-creators?"]:
-            podders.extend(self._project.metadata["Add co-creators?"])
-        writers = self._project.metadata["Writer"]
 
         def get_enum(persons):
             """ Aux function, to string """
-            return ", ".join([pseud for url, pseud in persons])
+            return ", ".join([pseud for url, pseud in persons if not pseud.startswith("__")])
 
-        artist = get_enum(podders)
+        artists = get_enum(
+            self._project.metadata["Creator/Pseud(s)"] \
+            + self._project.metadata["Add co-creators?"])
+        
+        writers = get_enum(self._project.metadata["Writer"])
         if writers:
-            artist += f" (w:{get_enum(writers)})"
+            artists += f" (w:{writers})"
 
-        return artist
+        return artists
 
 
     def update_metadata(self, final_files=True):
@@ -137,7 +135,10 @@ class AudioHandler:
 
             for file_path in self._project.files.audio.compressed.formatted \
                 + self._project.files.audio.compressed.unformatted:
-                audio = MP3(file_path, ID3=ID3)
+
+                audio = MP3(file_path)
+                if audio.tags is None:  # https://github.com/quodlibet/mutagen/issues/327
+                    audio.add_tags()
                 audio.tags.add(APIC(
                         encoding = 3, # 3 is for utf-8
                         mime = 'image/png', # image/jpeg or image/png

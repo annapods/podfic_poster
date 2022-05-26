@@ -15,8 +15,12 @@ if __name__ == "__main__":
     verbose = not args.quiet
 
     if args.mode == "new":
-        handle = ProjectHandler(mode="extract", verbose=verbose)
+        handle = ProjectHandler(
+            link="https://archiveofourown.org/works/37243984", fandom_abr="HRPF", raw_title="I want to believe",
+            mode="extract", verbose=verbose)
 
     if args.mode == "post":
-        handle = ProjectHandler(mode="saved", verbose=verbose)
+        handle = ProjectHandler(
+            # fandom_abr="HRPF", raw_title="It’s so late, but my brain won’t sleep",
+            mode="saved", verbose=verbose)
         handle.post()

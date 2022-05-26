@@ -14,7 +14,8 @@ import pandas
 from template_filler import Ao3Template
 from template_filler import DWTemplate
 from html_extractor import HTMLExtractor
-from fandom_taxonomy import FandomTaxonomy
+from fandom_taxonomy import FandomTaxonomyCSV as FandomTaxonomy
+# from fandom_taxonomy import FandomTaxonomySQLite as FandomTaxonomy
 
 
 class ProjectMetadata(UserDict):
@@ -78,7 +79,7 @@ class ProjectMetadata(UserDict):
             self._get_fandom_info()
             # Save the metadata
             self._save()
-            print(self["Category"])
+            # print(self["Categories"])
 
         if mode == "saved":
             # Load from saved file
@@ -213,7 +214,7 @@ class ProjectMetadata(UserDict):
                 "Underage"
         ], "/!\\ check Archive Warnings"
     
-        for category in self["Category"]:
-            assert category in [
-                "F/F", "F/M", "Gen", "M/M", "Multi", "Other"
-            ], "/!\\ check Categories"
+        # for category in self["Categories"]:
+        #     assert category in [
+        #         "F/F", "F/M", "Gen", "M/M", "Multi", "Other"
+        #     ], "/!\\ check Categories"

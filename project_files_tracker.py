@@ -112,7 +112,7 @@ class FileTracker:
 
         folder = folder if folder else join(
             FileTracker.wips_folder,
-            f"{self._id.fandom_abr} - {self._id.title_abr}"
+            f"{self._id.fandom_abr.lower()} - {self._id.title_abr}"
         )
 
         # If the folder already exists...
@@ -122,7 +122,7 @@ class FileTracker:
             print("- use it (hit return without typing anything)")
             print("- quit (type quit and then hit return)")
             print("- use another folder (type the path to the folder then hit return)")
-            choice = input()
+            choice = input("your choice: ")
             if choice == "":
                 return folder
             if choice == "quit":
@@ -136,7 +136,7 @@ class FileTracker:
         print("- create it (hit return)")
         print("- quit (type quit)")
         print("- use another folder path (type it into the terminal")
-        choice = input()
+        choice = input("your choice: ")
         if choice == "":
             mkdir(folder)
             return folder

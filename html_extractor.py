@@ -2,7 +2,7 @@
 """ Extracting data from parent work html
 No argparse/main """
 
-import re
+import regex as re
 
 
 def flatten(list_of_lists):
@@ -78,11 +78,15 @@ class HTMLExtractor:
 
     def _get_wordcount(self):
         """ Extracts, sums up and returns total wordcount """
-        regex = r"""<dt>Stats:<\/dt>
+        regex = r"""(?<=<dt>Stats:<\/dt>
       <dd>
         Published: [0-9-]+
-        Words: (.*?)
-      <\/dd>"""
+        Words: |dt>Stats:<\/dt>
+      <dd>
+        Published: [0-9-]+
+          Completed: [0-9-]+
+        Words: )[0-9]+(?=
+      <\/dd>)"""
         wordcounts = [int(re.findall(regex, work)[0]) for work in self._html_works]
         return sum(wordcounts)
 
@@ -127,7 +131,7 @@ class HTMLExtractor:
 
             "Archive Warnings": self._get_tags("Archive Warning"),
             "Rating": self._get_tags("Rating"),
-            "Category": self._get_tags("Category"),
+            "Categories": self._get_tags("Category"),
             "Fandoms": self._get_tags("Fandom"),
             "Relationships": self._get_tags("Relationship"),
             "Characters": self._get_tags("Character"),

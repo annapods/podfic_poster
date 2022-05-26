@@ -55,12 +55,11 @@ class IAUploader:
             print("you can:")
             print("- add to the existing item (hit return)")
             print("- choose a new identifier (input the chosen identifier)")
-            new = input()
+            new = input("your choice: ")
             if new == "":
                 self._identifier = identifier
             else:
-                print(f"sure you want to create a new item {new}? nothing for yes")
-                choice = input()
+                choice = input(f"sure you want to create a new item {new}? nothing for yes")
                 if choice == "":
                     self._set_identifier(new)
                 else:
@@ -90,7 +89,7 @@ class IAUploader:
             print("you can:")
             print("- quit (hit return)")
             print("- input a new one (input it now)")
-            new = input()
+            new = input("your choice: ")
             if new == "":
                 sys.exit()
             else:
@@ -151,7 +150,7 @@ class IAUploader:
             "/!\\ no ao3 link yet?"
 
         description = '<strong>Link to podfic:</strong> ' \
-            + f'<a href="{self._project.metadata["Podfic Link"]}"></a>'
+            + f'<a href="{self._project.metadata["Podfic Link"]}">ao3</a>'
         item = get_item(self._identifier)
         _ = item.modify_metadata(metadata={'description': description})
         self._vprint("done!\n")

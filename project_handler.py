@@ -88,8 +88,8 @@ class ProjectHandler:
 
         # Editing audio files for names and metadata
         audio = AudioHandler(self, verbose=self._verbose)
-        audio.add_cover_art()
         audio.rename_wip_audio_files()
+        audio.add_cover_art()
         audio.update_metadata()
         audio.save_audio_length()
         self.files.update_file_paths()

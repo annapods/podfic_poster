@@ -5,10 +5,11 @@ A podfic posting helper
 
 ## venv
 cd to the repertory
-python3 -m venv .venv
-(or 3.7, depending)
+```python
+python3.7 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
 
 ## ao3downloader
 download code at https://github.com/nianeyna/ao3downloader, place it in the folder, unzip
@@ -19,7 +20,9 @@ differently though
 TODO is that circumvented yet? to test
 
 ## internetarchive
+```python
 ia configure
+```
 will ask for email and password and save them in ~/.config/internetarchive/ia.ini
 
 ## gdrive
@@ -44,15 +47,19 @@ cover files:            idwta.png, idwta.svg
 ...
 
 ## new
+```python
 source .venv/bin/activate
 python main.py new
+```
 will ask for fandom abbreviation, full project title and ao3 link
 link can be to a series or to a work
 will dowload the html, and create a metadata yaml file from the info in it
 
 ## post
+```python
 source .venv/bin/activate
 python main.py post
+```
 will ask for fandom abbreviation and full project title
 will use the files in the folder and the info in the metadata file to:
 - edit metadata and cover art of audio files
