@@ -125,7 +125,7 @@ class HTMLExtractor:
             "Parent Work URL": self._get_urls(),
             "Parent Work Title": self._get_titles(),
             "Writer": self._get_authors(),
-            "Series": self._get_series(),
+            # "Series": self._get_series(),
             "Summary": self._get_summaries(),
             "Wordcount": self._get_wordcount(),
 

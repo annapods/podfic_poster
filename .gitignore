@@ -1,5 +1,6 @@
-# Fandom taxonomy database
-fandom_taxonomy.sql
+# Fandom taxonomies
+fandom_taxonomy.db
+fandom_taxonomy.csv
 
 # IDE stuff
 .vscode

@@ -22,7 +22,7 @@ class Template:
         if not items: return ""
         if len(items) == 1: return items[-1]
         if len(items) == 2: return f"{items[-2]} and {items[-1]}"
-        return ', '.join(items[:-3] + [f"{items[-2]} and {items[-1]}"])
+        return ', '.join(items[:-2] + [f"{items[-2]} and {items[-1]}"])
 
     def get_enum_links(self, items):
         """ Formats items into a string of hyperlinks """
