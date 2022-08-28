@@ -1,3 +1,4 @@
+# pylint: disable=too-few-public-methods
 # -*- coding: utf-8 -*-
 """ WARNING not finished, doesn't work, etc
 TODO more secure credentials??
@@ -12,15 +13,18 @@ https://www.thepythoncode.com/article/use-gmail-api-in-python"""
 
 from project_files_tracker import FileTracker
 from template_filler import DWTemplate
+from base_object import VerboseObject
 
 
-class DWPoster:
+class DWPoster(VerboseObject):
     """ DW poster helper!
     https://www.dreamwidth.org/manage/emailpost?mode=help """
 
-    def __init__(self, project_handler, verbose=True):
-        self._verbose = verbose
-        self._project = project_handler
+    def __init__(self, project_id, files, metadata, verbose=True):
+        super().__init__(verbose)
+        self._project_id = project_id
+        self._files = files
+        self._metadata = metadata
 
         # with open("settings.json", 'r') as file:
         #     edit = False
@@ -39,19 +43,13 @@ class DWPoster:
         # self._dw = f'{settings["dreamwidth_username"]}+PIN@post.dreamwidth.org'
 
 
-    def _vprint(self, string:str, end:str="\n"):
-        """ Print if verbose """
-        if self._verbose:
-            print(string, end=end)
-
-
     # def _get_email_body(self, content="", security=""):
     #     """ Generates the body of the email
     #     If content isn't specified, will be extracted from saved dw template
     #     If security isn't specified, will be set to friends-only for rpf and public otherwise """
 
     #     if not content:
-    #         with open(self._project.files.template.dw, 'r') as file:
+    #         with open(self._files.template.dw, 'r') as file:
     #             content = file.read()
 
     #     security = security if security \
@@ -99,8 +97,9 @@ class DWPoster:
         if mass_xpost, concatenates the html to the relevant file to enable mass posting later """
 
         self._vprint('Creating dw template...', end=" ")
-        self._project.metadata.check_and_format(posted=True)
-        post = DWTemplate(self._project).post_text
+        self._metadata.check_and_format(posted=True)
+
+        post = DWTemplate(self._metadata).post_text
 
         if mass_xpost:
             self._vprint(f"saving in {FileTracker.dw_mass_xpost_file}...", end=" ")
@@ -114,8 +113,8 @@ class DWPoster:
                     post += """\n\n\n<p align="center">...</p>\n\n\n"""
                     file.write(post)
         else:
-            self._vprint(f"saving in {self._project.files.template.dw}...", end=" ")
-            with open(self._project.files.template.dw, 'w', encoding="utf-8") as file:
+            self._vprint(f"saving in {self._files.template.dw}...", end=" ")
+            with open(self._files.template.dw, 'w', encoding="utf-8") as file:
                 file.write(post)
 
-        self._vprint('done!')
+        self._vprint('Done!')

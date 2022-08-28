@@ -1,0 +1,208 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-08-28 20:29+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: template_filler.py:84
+msgid "and"
+msgstr ""
+
+#: template_filler.py:96 template_filler.py:136
+msgid "Cover art."
+msgstr ""
+
+#: template_filler.py:97 template_filler.py:136
+msgid "Cover art welcome."
+msgstr ""
+
+#: template_filler.py:132 template_filler.py:194 template_filler.py:202
+#: template_filler.py:206
+msgid ":"
+msgstr ""
+
+#: template_filler.py:140
+msgid "Parent works"
+msgstr ""
+
+#: template_filler.py:142
+msgid "Writers"
+msgstr ""
+
+#: template_filler.py:143
+msgid "Readers"
+msgstr ""
+
+#: template_filler.py:144 template_filler.py:247
+msgid "Context"
+msgstr ""
+
+#: template_filler.py:145
+msgid "Fandoms"
+msgstr ""
+
+#: template_filler.py:146
+msgid "Pairings"
+msgstr ""
+
+#: template_filler.py:147
+msgid "Characters"
+msgstr ""
+
+#: template_filler.py:148
+msgid "Tags"
+msgstr ""
+
+#: template_filler.py:149
+msgid "Rating"
+msgstr ""
+
+#: template_filler.py:150 template_filler.py:277
+msgid "Content notes"
+msgstr ""
+
+#: template_filler.py:151 template_filler.py:273
+msgid "Additional credits"
+msgstr ""
+
+#: template_filler.py:153
+msgid "Audio length (incl. potential endnotes)"
+msgstr ""
+
+#: template_filler.py:155
+msgid "Summary"
+msgstr ""
+
+#: template_filler.py:158
+msgid "Link to podfics"
+msgstr ""
+
+#: template_filler.py:186
+msgid "Written by"
+msgstr ""
+
+#: template_filler.py:215
+msgid ""
+"Mp3 and raw audio files for download and streaming as well as any other "
+"files relevant to this work. See the side of the page (\"download options\") "
+"for the different formats/files. The mp3 will be under \"VBR MP3\"."
+msgstr ""
+
+#: template_filler.py:224
+msgid "Mp3 file(s) to stream or download on gdrive."
+msgstr ""
+
+#: template_filler.py:231
+msgid "Browser streaming"
+msgstr ""
+
+#: template_filler.py:240
+msgid "Podfic files"
+msgstr ""
+
+#: template_filler.py:246
+msgid "This was created for"
+msgstr ""
+
+#: template_filler.py:253
+msgid "for giving blanket permission to podfics!"
+msgstr ""
+
+#: template_filler.py:254
+msgid "for letting me record this work!"
+msgstr ""
+
+#: template_filler.py:256
+msgid "Thanks to"
+msgstr ""
+
+#: template_filler.py:259
+msgid "Thanks"
+msgstr ""
+
+#: template_filler.py:267
+msgid "Lemon rating stickers"
+msgstr ""
+
+#: template_filler.py:287
+msgid "Notes"
+msgstr ""
+
+#: template_filler.py:293
+msgid "Names"
+msgstr ""
+
+#: template_filler.py:293
+msgid "or"
+msgstr ""
+
+#: template_filler.py:294
+msgid "Pronouns"
+msgstr ""
+
+#: template_filler.py:294
+msgid "she or they"
+msgstr ""
+
+#: template_filler.py:295
+msgid "Socials"
+msgstr ""
+
+#: template_filler.py:300
+msgid "Email"
+msgstr ""
+
+#: template_filler.py:304
+msgid "Contact info"
+msgstr ""
+
+#: template_filler.py:308
+msgid "What to say/not to say"
+msgstr ""
+
+#: template_filler.py:310
+msgid ""
+"I'd love to hear from you! Be it a single word or emoji, a long freetalk on "
+"your thoughts and feelings, recs for things to read or listen to that you "
+"think I might like, meta, further transformative works, ...\"<br>\n"
+"\"I will love you forever: \"this is how I experienced this work\", \"you "
+"might be interested by this other tool or method\", \"you kind of fucked up "
+"there on that front\", \"I have some concrit on this aspect, would you be "
+"interested in hearing it?\"<br>\n"
+"I will still like you but it's going to be awkward: \"I think you should "
+"change the way you do things to fit my own preferences\", \"I usually don't "
+"like this thing, but you're not like other podficcers\", \"I loved so and so "
+"about the writing that you didn't write and this comment is really for the "
+"writer\".<br>\n"
+"Some super useful podfic feedback tools by Mo: <a href=\"https://yue-ix."
+"dreamwidth.org/144236.html\">how to</a> and <a href=\"https://podfic-tips."
+"livejournal.com/95933.html\">vocabulary</a>"
+msgstr ""
+
+#: template_filler.py:329
+msgid "When to expect a reply"
+msgstr ""
+
+#: template_filler.py:330
+msgid ""
+"Leaving me comments is kind of like starting a snail mail exchange in reply "
+"to a message in a bottle. I might not answer quickly (as in, it could take "
+"me... a couple of years...) but I will eventually!"
+msgstr ""
+
+#: template_filler.py:341
+msgid "Feedback"
+msgstr ""

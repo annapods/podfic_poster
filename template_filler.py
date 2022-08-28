@@ -1,215 +1,283 @@
 # pylint: disable=multiple-statements
+# pylint: disable=invalid-name
+# pylint: disable=global-statement
 # -*- coding: utf-8 -*-
 """
 Filling ao3 and dw posting templates
 TODO tracker
+
+NOTE on internalisation
+https://simpleit.rocks/python/how-to-translate-a-python-project-with-gettext-the-easy-way/
+
+
+## To add a new language
+
+# Set some variables
+NAME=template_filler
+DIR=.locales
+LANG=fr
+
+# Gather all strings to be translated, don't edit that file by hand, no need to regenerate if
+# no changes since last time
+# Note, calls to translator in f strings seem not to be picked up
+xgettext -d $NAME --keyword=i18l -o $DIR/$NAME.pot template_filler.py --from-code=UTF-8
+
+# Make a language-specific copy, fill the translations
+cp $DIR/$NAME.pot $DIR/$LANG/LC_MESSAGES/$NAME.po
+
+# Create the binary file gettext will actually use
+msgfmt -o $DIR/$LANG/LC_MESSAGES/$NAME.mo $DIR/$LANG/LC_MESSAGES/$NAME.po
+
+
+## To update after changes
+
+# Update base file
+NAME=template_filler
+DIR=.locales
+xgettext -d $NAME --keyword=i18l -o $DIR/$NAME.pot template_filler.py
+
+# Use it to update language file, go update the translations
+LANG=fr
+msgmerge --update $DIR/$LANG/LC_MESSAGES/$NAME.po $DIR/$NAME.pot
+
+# Update the binary file
+msgfmt -o $DIR/$LANG/LC_MESSAGES/$NAME.mo $DIR/$LANG/LC_MESSAGES/$NAME.po
+
 """
 
+from typing import List, Tuple
+from gettext import translation
+from base_object import VerboseObject
 
-class Template:
-    """ Auxiliary html-coding functions """
 
-    def delete_empty(self, items):
+# Language set in __init__ to this global variable
+# Couldn't figure out how to make xgettext find the right keyword with it as an instance
+# attribute
+def i18l(_:str) -> str:
+    """ Placeholder """
+    return "NOPE, gotta debug, sorry!"
+
+
+class Template(VerboseObject):
+    """ Auxiliary html-coding functions and setting the locale """
+
+    def __init__(self, lang:str, verbose:bool=True):
+        super().__init__(verbose)
+        translator = translation('template_filler', localedir='.locales', languages=[lang])
+        global i18l
+        i18l = translator.gettext
+
+    @staticmethod
+    def delete_empty(items:List) -> List:
         """ Delete empty items in list """
         return [i for i in items if i]
 
-    def get_a_href(self, link, text):
+    @staticmethod
+    def get_a_href(link:str, text:str) -> str:
         """ Formats link and text into an html hyperlink """
         return f'''<a href="{link}">{text}</a>'''
 
-    def get_enum(self, items):
+    @staticmethod
+    def get_enum(items:List, conj:str="") -> str:
         """ Joins items in a string with commas and 'and' """
         if not items: return ""
         if len(items) == 1: return items[-1]
-        if len(items) == 2: return f"{items[-2]} and {items[-1]}"
-        return ', '.join(items[:-2] + [f"{items[-2]} and {items[-1]}"])
+        conj = i18l(conj) if conj else i18l("and")
+        if len(items) == 2: return " ".join([items[-2], conj, items[-1]])
+        return ', '.join(items[:-2] + [" ".join([items[-2], conj, items[-1]])])
 
-    def get_enum_links(self, items):
+    @staticmethod
+    def get_enum_links(items:List[Tuple[str, str]]) -> str:
         """ Formats items into a string of hyperlinks """
         if not items: return ""
-        return self.get_enum([self.get_a_href(link, text) for link, text in items])
+        return Template.get_enum([Template.get_a_href(link, text) for link, text in items])
 
-    def get_img(self, link="", width=0, height=0):
+    @staticmethod
+    def get_img(link:str="", width:int=0, height:int=0,
+        img_alt_text:str=i18l("Cover art."),
+        no_img_alt_text:str=i18l("Cover art welcome."))-> str:
         """ Formats info into the html for an embedded image """
         template = f'''<img src="{link}"''' if link else '''<img src="COVER"'''
         if width: template += f' width="{width}"'
         if height: template += f' height="{height}"'
-    
-        if link: template += ''' alt="cover art" />'''
-        else: template += ''' alt="cover art welcome" />'''
-
+        if link: template += f''' alt="{img_alt_text}" />'''
+        else: template += f''' alt="{no_img_alt_text}" />'''
         return template
 
-    def get_li(self, items):
+    @staticmethod
+    def get_li(items:List[str]) -> str:
         """ Formats items into the html code for an <li> list """
         if items: return "".join([f'''<li>{item}</li>''' for item in items])
         return ""
+
+    @staticmethod
+    def add_tag(tag:str, string:str) -> str:
+        """ Encloses the string in the html tag """
+        return f"<{tag}>{string}</{tag}>"
 
 
 ### DW
 
 class DWTemplate(Template):
     """ DW template creator! """
-    
-    def __init__(self, project_handler, verbose=True):
-        """ info is the dict of work info, not the ProjectData object itself """
-        self._verbose = verbose
-        self._info = project_handler.metadata
+
+    def __init__(self, metadata, verbose:bool=True):
+        super().__init__(metadata["Language"], verbose)
+        self._info = metadata
         self.post_text = self._get_post()
 
-    def _vprint(self, string:str, end:str="\n"):
-        """ Print if verbose """
-        if self._verbose:
-            print(string, end=end)
-
-    def _get_post(self):
+    def _get_post(self) -> str:
         """ Formats the dw post html """
-        post = '<div style="text-align: center;">' \
-        + self.get_img(self._info["IA Cover Link"], width=200, height=200) + "</div>" \
-        + "\n\n" \
-        + '''<p><strong>Parent works:</strong> ''' + self.get_enum_links(
-            zip(self._info["Parent Work URL"], self._info["Parent Work Title"])) \
-        + '''</a><br>''' \
-        + f'''<p><strong>Writers:</strong> {self.get_enum_links(self._info["Writer"])}<br>''' \
-        + f'''<strong>Readers:</strong> {self.get_enum_links(self._info["Creator/Pseud(s)"])}''' \
-            + '''<br>''' \
-        + f'''<strong>Occasion:</strong> {self._info["Occasion"]}<br>''' \
-        + f'''<strong>Fandoms:</strong> {', '.join(self._info['Fandoms'])}<br>''' \
-        + f'''<strong>Pairings:</strong> {', '.join(self._info['Relationships'])}<br>''' \
-        + f'''<strong>Characters:</strong> {', '.join(self._info['Characters'])}<br>''' \
-        + f'''<strong>Tags:</strong> {', '.join(self._info['Additional Tags'])}<br>''' \
-        + f'''<strong>Rating:</strong> {self._info['Rating']}<br>''' \
-        + f'''<strong>Content notes:</strong> {self._info['Content Notes']}<br>''' \
-        + '''<strong>Credits:</strong> ''' \
-        + self.get_enum_links(self._info['Credits']) \
-        + '''<br>''' \
-        + f'''<strong>Length (including endnotes):</strong> {self._info['Audio Length']}<br>''' \
-        + f'''<strong>Summary:</strong> {self._info['Summary']}</p>'''
-        links = [
-            (self._info["Podfic Link"], "ao3"),
-            (self._info["IA Link"], "internet archive"),
-            (self._info["GDrive Link"], "gdrive")
-        ]
-        post += f'''\n\n<p><strong>Link to podfic:</strong> {self.get_enum_links(links)}'''
+
+        def heading(header):
+            return self.add_tag("str", (header+i18l(':')))+" "
+
+        cover = '<div style="text-align: center;">' \
+            + self.get_img(self._info["IA Cover Link"], width=200, height=200,
+            img_alt_text=i18l("Cover art."), no_img_alt_text=i18l("Cover art welcome.")) \
+            + "</div>"
+        info = self.add_tag("p",
+            "<br>".join([
+                heading(i18l("Parent works")) + self.get_enum_links(
+                    zip(self._info["Parent Work URL"], self._info["Parent Work Title"])),
+                heading(i18l("Writers")) + self.get_enum_links(self._info["Writer"]),
+                heading(i18l("Readers")) + self.get_enum_links(self._info["Creator/Pseud(s)"]),
+                heading(i18l("Context")) + self._info["Occasion"],
+                heading(i18l("Fandoms")) + ', '.join(self._info['Fandoms']),
+                heading(i18l("Pairings")) + ', '.join(self._info['Relationships']),
+                heading(i18l("Characters")) + ', '.join(self._info['Characters']),
+                heading(i18l("Tags")) + ', '.join(self._info['Additional Tags']),
+                heading(i18l("Rating")) + self._info['Rating'],
+                heading(i18l("Content notes")) + self._info['Content Notes'],
+                heading(i18l("Additional credits")) \
+                    + self.get_enum_links(self._info['Credits']),
+                heading(i18l("Audio length (incl. potential endnotes)")) \
+                    + self._info['Audio Length'],
+                heading(i18l("Summary")) + self._info['Summary']
+            ]))
+        links = self.add_tag("p",
+            heading(i18l("Link to podfics")) + self.get_enum_links([
+                (self._info["Podfic Link"], "ao3"),
+                (self._info["IA Link"], "internet archive"),
+                (self._info["GDrive Link"], "gdrive")
+        ]))
+        post = "\n\n".join([cover, info, links])
         return post
 
-
+### Ao3
 
 class Ao3Template(Template):
     """ Filling the ao3 template """
 
-    def __init__(self, project_handler, verbose=True):
-        self._verbose = verbose
-        self._info = project_handler.metadata
+    def __init__(self, metadata, verbose:bool=True):
+        super().__init__(metadata["Language"], verbose)
+        self._info = metadata
         self.summary = self._get_ao3_summary()
         self.work_text = self._get_ao3_work_text()
 
-    def _vprint(self, string:str, end:str="\n"):
-        """ Print if verbose """
-        if self._verbose:
-            print(string, end=end)
-
-    def _get_ao3_summary(self):
+    def _get_ao3_summary(self) -> str:
         """ Formats the ao3 summary html:
-
         Blah blah summary.
-
         00:00:00 :: Written by <a href="link">writer</a>. """
-
         summary = self._info["Summary"]
+        # Check if summary is the parent work's or if it has been edited for the podfic already
+        # This is (clumsily) done using the audio length
         if self._info["Audio Length"] not in summary:
-            summary += f'\n\n{self._info["Audio Length"]}'
-        if self._info["Writer"] and " :: Written by " not in summary:
-            authors = self.get_enum_links(self._info["Writer"])
-            summary +=  f''' :: Written by {authors}.'''
+            summary += f'\n\n{self._info["Audio Length"]} :: '
+            summary += i18l("Written by")+" "+self.get_enum_links(self._info["Writer"])+'.'
         return summary
 
-    def _get_section(self, title:str, parts:list):
-        """ Big sections """
-        template = ""
-        parts = self.delete_empty(parts)
-        if parts: template = f"<h3>{title}:</h3>\n" \
-        + "\n\n".join(parts)
-        return template
+    def _get_section(self, title:str, subsections:List[str]) -> str:
+        """ Big sections, potentialy several subsections
+        Returns an empty string if no subsections are given """
+        subsections = "\n\n".join(self.delete_empty(subsections))
+        if not subsections: return ""
+        return self.add_tag("h3", title+i18l(':')) + "\n" + subsections
 
-    def _get_sub_section(self, title:str, content:str):
-        """ Sub sections of big sections """
-        template = ""
-        if content and content.startswith("<li>"):  # an attempt at fixing whatever happens to
+    def _get_sub_section(self, title:str, content:str) -> str:
+        """ Sub sections of big sections
+        Returns an empty string if there's no content to put in the section """
+        if not content: return ""
+        if content.startswith("<li>"):  # an attempt at fixing whatever happens to
             # <li> formatting somewhere between yaml and ao3...
-            template = f'''<p><strong>{title}:</strong>\n''' \
-            + content + "</p>"
-        elif content and not content.startswith("<li>"):
-            template = f'''<p><strong>{title}:</strong><br>\n''' \
-            + content + "</p>"
+            template = self.add_tag("strong", title+i18l(':')) + content
+        else:
+            template = self.add_tag("p",
+                self.add_tag("strong",
+                    title+i18l(':')
+                ) + "<br>" + content
+            )
         return template
 
-    def _get_ia_dl(self):
+
+    def _get_ia_dl(self) -> str:
         """ Internet archive section """
         title = self.get_a_href(self._info["IA Link"], "Internet archive")
-        content = "Mp3 and raw audio files for download and streaming as well as the html text " \
-        + "and the cover art in png and svg formats if applicable.\n" \
-        + "<br>See the side of the page (“download options”) for the different formats/files " \
-        + "and for download. The mp3 file will be under “VBR MP3”.</p>"
+        content = i18l("Mp3 and raw audio files for download and streaming as well as " \
+            + "any other files relevant to this work. " \
+            + 'See the side of the page ("download options") for the different formats/files. ' \
+            + 'The mp3 will be under "VBR MP3".')
         return self._get_sub_section(title, content)
 
-    def _get_gdrive_dl(self):
+    def _get_gdrive_dl(self) -> str:
         """ GDrive section """
         title = self.get_a_href(self._info["GDrive Link"], "Google drive")
-        content = "Mp3 file(s) streamable on gdrive.</p>"
+        content = i18l("Mp3 file(s) to stream or download on gdrive.")
         return self._get_sub_section(title, content)
 
-    def _get_streaming(self):
+    def _get_streaming(self) -> str:
         """ Streaming section """
         content = "<br>\n".join(
             [f'''<audio src="{link}"></audio>''' for link in self._info["IA Streaming Links"]])
-        return self._get_sub_section("Browser streaming", content)
+        return self._get_sub_section(i18l('Browser streaming'), content)
 
-    def _get_audio_files(self):
+    def _get_audio_files(self) -> str:
         """ Audio files section """
         parts = [
             self._get_ia_dl(),
             self._get_gdrive_dl(),
             self._get_streaming()
         ]
-        return self._get_section("Podfic files", parts)
+        return self._get_section(i18l("Podfic files"), parts)
 
-    def _get_context(self):
+    def _get_context(self) -> str:
         """ Context section """
         occasion = self._info["Occasion"]
         content = "" if occasion in ["none", "n/a"] else \
-            f'''This was created for {occasion}.'''
-        return self._get_sub_section("Context", content)
+            i18l("This was created for")+" "+occasion
+        return self._get_sub_section(i18l("Context"), content)
 
-    def _get_thanks(self):
+    def _get_thanks(self) -> str:
         """ Thanks section """
-        content = ""
-        if self._info["Writer"]:
-            content = f'''Thanks to {self.get_enum_links(self._info["Writer"])} for '''
-            thanks = "giving blanket permission to podfics" if self._info["BP"] \
-                else "giving me permission to record this work!"
-            content += thanks
-        return self._get_sub_section("Thanks", content)
+        if not self._info["Writer"]:
+            return ""
+        reason = i18l("for giving blanket permission to podfics!") if self._info["BP"] \
+            else i18l("for letting me record this work!")
+        content = " ".join([
+            i18l("Thanks to"),
+            self.get_enum_links(self._info["Writer"]),
+            reason])
+        return self._get_sub_section(i18l("Thanks"), content)
 
-    def _get_additional_credits(self):
+    def _get_additional_credits(self) -> str:
         """ Credits section """
         credit = self._info["Credits"]
         if self._info["Stickers"]:
             credit.append([
                 "https://www.dropbox.com/sh/m594efbyu3kjrse/AACKZKGpiS0UqQZIdTXFSKoSa?dl=0",
-                "lemon rating stickers"
+                i18l("Lemon rating stickers")
             ])
         if credit:
             credit = [self.get_a_href(link, name) for link, name in credit \
                 if not (link.startswith("__") or name.startswith("__"))]
         content = self.get_li(credit)
-        return self._get_sub_section("Additional credits", content)
+        return self._get_sub_section(i18l("Additional credits"), content)
 
-    def _get_content_notes(self):
+    def _get_content_notes(self) -> str:
         """ Content notes section """
-        return self._get_sub_section("Content notes", self._info["Content Notes"])
+        return self._get_sub_section(i18l("Content notes"), self._info["Content Notes"])
 
-    def _get_notes(self):
+    def _get_notes(self) -> str:
         """ Notes section """
         parts = [
             self._get_context(),
@@ -217,73 +285,73 @@ class Ao3Template(Template):
             self._get_additional_credits(),
             self._get_content_notes()
         ]
-        return self._get_section("Notes", parts)
+        return self._get_section(i18l("Notes"), parts)
 
-    def _get_contact_info(self):
-        """ Contact info section """
+    def _get_contact_info(self) -> str:
+        """ Contact info section
+        NOTE contact info is hardcoded, could it be adapted? """
         info = {
-            "names": "Anna or Annapods",
-            "pronouns": "she or they",
-            "socials": [
+            i18l("Names"): self.get_enum(["Anna", "Annapods"], i18l("or")),
+            i18l("Pronouns"): i18l("she or they"),
+            i18l("Socials"): self.get_enum_links([
                 ("https://twitter.com/iamapodperson", "twitter"),
                 ("http://annapods.tumblr.com/", "tumblr"),
                 ("https://annapods.dreamwidth.org/", "dreamwidth")
-            ],
-            "email": "annabelle.myrt@gmail.com"
+            ]),
+            i18l("Email"): "annabelle.myrt@gmail.com"
         }
-        info["socials"] = self.get_enum_links(info["socials"])
-        info = [f'''{key}: {value}''' for key, value in info.items()]
+        info = [f'''{key}{i18l(":")} {value}''' for key, value in info.items()]
         content = self.get_li(info)
-        return self._get_sub_section("Contact info", content)
+        return self._get_sub_section(i18l("Contact info"), content)
 
-    def _get_what_to_say(self):
+    def _get_what_to_say(self) -> str:
         """ What to say section """
-        content = [
-            'I’d love to hear from you! Be it a single word or emoji, a long freetalk on your ' \
+        return self._get_sub_section(i18l("What to say/not to say"),
+            i18l(
+            "I'd love to hear from you! Be it a single word or emoji, a long freetalk on your " \
                 + 'thoughts and feelings, recs for things to read or listen to that you think ' \
-                + 'I might like, meta, further transformative works, ...',
-            'I will love you forever: “this is how I experienced this work”, “you might be ' \
-                + 'interested by this other tool or method”, “you kind of fucked up there on ' \
-                + 'that front”, “I have some concrit on this aspect, would you be interested ' \
-                + 'in hearing it?”',
-            'I will still like you but it’s going to be awkward: “I think you should change ' \
-                + 'the way you do things to fit my own preferences”, “I usually don’t like ' \
-                + 'this thing, but you’re not like other podficcers”, “I loved so and so ' \
-                + 'about the writing that you didn’t write and this comment is really for the ' \
-                + 'writer”.',
-            'Some super useful podfic feedback tools by Mo: <a href="https://yue-ix.dreamwidth' \
-                + '.org/144236.html">how to</a> and <a href="https://podfic-tips.livejournal.' \
-                + 'com/95933.html">vocabulary</a>'
-        ]
-        content = "<br>\n".join(content)
-        return self._get_sub_section("What to say/what not to say", content)
+                + 'I might like, meta, further transformative works, ..."<br>\n"' \
+            + 'I will love you forever: "this is how I experienced this work", "you might be ' \
+                + 'interested by this other tool or method", "you kind of fucked up there on ' \
+                + 'that front", "I have some concrit on this aspect, would you be interested ' \
+                + 'in hearing it?"<br>\n' \
+            + '''I will still like you but it's going to be awkward: "I think you should ''' \
+                + '''change the way you do things to fit my own preferences", "I usually ''' \
+                + '''don't like this thing, but you're not like other podficcers", "I loved ''' \
+                + '''so and so about the writing that you didn't write and this comment is ''' \
+                + '''really for the writer".<br>\n''' \
+            + 'Some super useful podfic feedback tools by Mo: ''' \
+                + '''<a href="https://yue-ix.dreamwidth.org/144236.html">how to</a> and ''' \
+                + '''<a href="https://podfic-tips.livejournal.com/95933.html">vocabulary</a>'''
+            ))
 
-    def _get_reply_policy(self):
+    def _get_reply_policy(self) -> str:
         """ Reply policy section """
-        content = "Leaving me comments is kind of like starting a snail mail exchange in " \
-            + "reply to a message in a bottle. I might not answer quickly (as in, it… could " \
-            + "take me a few months…) but I will eventually!"
-        return self._get_sub_section("When to expect a reply", content)
+        return self._get_sub_section(i18l("When to expect a reply"),
+            i18l("Leaving me comments is kind of like starting a snail mail " \
+            + "exchange in reply to a message in a bottle. I might not answer quickly (as in, " \
+            + "it could take me... a couple of years...) but I will eventually!"))
 
-    def _get_feedback(self):
+    def _get_feedback(self) -> str:
         """ Feedback section """
         parts = [
             self._get_contact_info(),
             self._get_what_to_say(),
             self._get_reply_policy()
         ]
-        return self._get_section("Feedback", parts)
+        return self._get_section(i18l("Feedback"), parts)
 
-    def _get_cover_art(self):
+    def _get_cover_art(self) -> str:
         """ Cover art """
         content = f'''<p align="center">{self.get_img(self._info["IA Cover Link"],
             width=250)}'''
         if self._info["Cover Artist"]:
-            content += f'''<br>\nCover art by {self.get_enum_links(self._info["Cover Artist"])}'''
+            content += f'''<br>\n{i18l("Cover art by")} ''' \
+                + self.get_enum_links(self._info["Cover Artist"])
         content += "</p>"
         return content
 
-    def _get_ao3_work_text(self):
+    def _get_ao3_work_text(self) -> str:
         """ Format and return the whole of the work text """
         parts = [
             self._get_cover_art(),
@@ -292,4 +360,5 @@ class Ao3Template(Template):
             self._get_feedback()
         ]
         parts = [part for part in parts if parts]
-        return "\n\n<p>&nbsp;</p>\n\n".join(parts)
+        # return "\n\n<p>&nbsp;</p>\n\n".join(parts)
+        return "\n\n\n".join(parts)

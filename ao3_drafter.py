@@ -1,27 +1,26 @@
+# pylint: disable=too-few-public-methods
 # -*- coding: utf-8 -*-
 """ TODO main test """
 
 # import pexpect
 import json
+# from csv import DictReader
 from ao3_poster.ao3 import login, logout, post
-from csv import DictReader
 
 from template_filler import Ao3Template
+from base_object import VerboseObject
 
 
-class Ao3Poster:
+class Ao3Poster(VerboseObject):
     """ Ao3 posting helper!
     Uses ao3-poster to create an ao3 draft
     https://ao3-poster.readthedocs.io/en/latest/index.html """
 
-    def __init__(self, project_handler, verbose=True):
-        self._verbose = verbose
-        self._project = project_handler
-
-    def _vprint(self, string:str, end:str="\n"):
-        """ Print if verbose """
-        if self._verbose:
-            print(string, end=end)
+    def __init__(self, project_id, files, metadata, verbose=True):
+        super().__init__(verbose)
+        self._project_id = project_id
+        self._files = files
+        self._metadata = metadata
 
     def _get_session(self):
         """ Fetches credentials and logs in to an ao3 session. """
@@ -77,7 +76,7 @@ class Ao3Poster:
         logout(session)
 
         # Save the link to the project info
-        self._project.metadata.update_md(category="Podfic Link", content=link)
+        self._metadata.update_md(category="Podfic Link", content=link)
 
         self._vprint("done!\n")
 
@@ -86,17 +85,17 @@ class Ao3Poster:
         """ Creates ao3 posting data dict according to ao3-poster format, using Ao3Template to
         format body and summary of the post """
         self._vprint('Creating ao3 template...', end=" ")
-        metadata = self._project.metadata  # just for convenience, bc it's pretty long...
+        metadata = self._metadata  # just for convenience, bc it's pretty long...
         metadata.check_and_format(posted=False)
         metadata.add_podfic_tags()
 
-        template = Ao3Template(self._project)
+        template = Ao3Template(self._metadata)
         metadata.update_md("Summary", template.summary)
         metadata.update_md("Work text", template.work_text)
 
         data = {}
         data["Work Title"] = f'[{metadata["Work Type"]}] ' + \
-            f'{self._project.id.raw_title}'
+            f'{self._project_id.raw_title}'
 
         for key in ["Fandoms", "Relationships",
             "Characters", "Additional Tags", "Archive Warnings", "Categories"]:
@@ -111,16 +110,19 @@ class Ao3Poster:
             "Work text", "Parent Work URL", "Rating"]:
             data[key] = metadata[key]
 
-        if isinstance(metadata["Parent Work URL"], list):
+        if isinstance(metadata["Parent Work URL"], list) \
+            and len(metadata["Parent Work URL"]) > 0:
             data["Parent Work URL"] = data["Parent Work URL"][0]
+        else:
+            data["Parent Work URL"] = ""
 
         return data
-    
+
 
 # #  Code for drafting using the ao3-poster command line interface
 # #  Uses pexpect to interact with the cli, not ideal
 # #  https://pexpect.readthedocs.io/en/stable/overview.html?highlight=before#api-overview
-# cmd = f"ao3 post '{self._project.files.template.ao3}"
+# cmd = f"ao3 post '{self._files.template.ao3}"
 # with pexpect.spawn(cmd) as process:
 #     process.expect('Username or email:')
 #     process.sendline(username)

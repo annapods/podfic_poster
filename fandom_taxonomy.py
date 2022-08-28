@@ -18,7 +18,7 @@ class FandomTaxonomy:
         This allows for one-to-many, many-to-one and many-to-many cases such as:
         - ["Batman (Comics)", "Batman - All Media Types"] -> ["Batman (Comics)"]
         - ["Women's Hockey RPF"] -> ["Hockey RPF", "Women's Hockey RPF"]
-        
+
         NOTE I checked, and the only commas in all of the canonical fandom tags on ao3 (as of
         20222-05-26) are the "、" characters in Japanese titles. To double-check, open every
         category at https://archiveofourown.org/media. """
@@ -51,7 +51,9 @@ class FandomTaxonomySQLite(FandomTaxonomy):
 
     SQLite implementation. NOTE works, but would need some adaptations:
     - better input handling when asked to pick a number, cf CSV implementation
-    - many-to-many with rel tables for everything? many-to-one for each, but list blobs? etc """
+    - many-to-many with rel tables for everything? many-to-one for each, but list blobs? etc
+
+    TODO get rid of the f strings and make it safe against injections """
 
     db_path = "fandom_taxonomy.db"
 
@@ -135,7 +137,7 @@ class FandomTaxonomySQLite(FandomTaxonomy):
             for i, option in enumerate(options):
                 print(i, option)
             print(len(options), "(new)")
-            n_option = int(input("Your choice: "))  # TODO will fail if it's not a number, cf CSV
+            n_option = int(input("Your choice? "))  # TODO will fail if it's not a number, cf CSV
             if n_option >= len(options):
                 should_be = input("New: ")
             else:
@@ -143,9 +145,9 @@ class FandomTaxonomySQLite(FandomTaxonomy):
 
         # Offer to save new value
         print("We can save these preferences for next time!")
-        print("- no (hit return without typing anything)")
-        print("- yes (type anything then hit return)")
-        if input("Your choice: ") != "":
+        print("- No (hit return without typing anything)")
+        print("- Yes (type anything then hit return)")
+        if input("Your choice? ") != "":
             requests = [
                 f"""INSERT OR IGNORE INTO {table_name} ({primary_key_name}, {target_key_name})
                 VALUES("{primary_key_value}", "{should_be}")"""
@@ -213,7 +215,9 @@ class FandomTaxonomyCSV(FandomTaxonomy):
     folder, before we get to the info).
 
     CSV implementation. Every item can be the blob of a comma-separated string list.
-    NOTE shouldn't work that way for abbreviations, and can there be commas in canonical tags? """
+    NOTE shouldn't work that way for abbreviations, and can there be commas in canonical tags?
+
+    TODO needs some debug"""
 
     csv_path = join(dirname(__file__), "fandom_taxonomy.csv")
     columns = [
@@ -229,7 +233,7 @@ class FandomTaxonomyCSV(FandomTaxonomy):
         else:
             self._df = pandas.DataFrame(columns=FandomTaxonomyCSV.columns)
             self._save()
-    
+
     def _save(self):
         self._df.to_csv(FandomTaxonomyCSV.csv_path, index=False)
 
@@ -242,24 +246,24 @@ class FandomTaxonomyCSV(FandomTaxonomy):
         This allows for one-to-many, many-to-one and many-to-many cases such as:
         - ["Batman (Comics)", "Batman - All Media Types"] -> ["Batman (Comics)"]
         - ["Women's Hockey RPF"] -> ["Hockey RPF", "Women's Hockey RPF"] """
-        
+
         def pick_option(to_pick, based_on, options=[]):
             """ Offers the user all given options and to add a new one. Returns their choice. """
 
             # print options
             print(f"\nWhich {to_pick} for {based_on}? You can:",
-                "\n- pick a number",
-                "\n- hit return for the first item in the list (if any)",
-                "\n- or type the new value directly (separated with ', ' if it's a list)")
+                "\n- Pick a number",
+                "\n- Hit return for the first item in the list (if any)",
+                "\n- Or type the new value directly (separated with ', ' if it's a list)")
             for i, option in enumerate(options):
                 print(f"{i}) {option}")
 
             # get user's choice
-            choice = input("Your choice: ")
+            choice = input("Your choice? ")
             # hit return, but no list to pick from
             if not choice and not options:
                 print("We're going to need a value...")
-                return self.pick_option(to_pick, based_on, options)
+                return pick_option(to_pick, based_on, options)
             # hit return, picking first option in the list
             elif not choice:
                 n_option = 0
@@ -289,14 +293,13 @@ class FandomTaxonomyCSV(FandomTaxonomy):
             res.append(pick_option(to_pick, res[-1], list(candidates[to_pick])))
 
         if candidates.empty:
-            dict_res = {category:content for category, content
-                in zip(FandomTaxonomyCSV.columns, res)}
+            dict_res = dict(zip(FandomTaxonomyCSV.columns, res))
             print("You chose:")
             print(*[f"\n{category} -> {content}" for category, content in dict_res.items()])
             print("We can save these preferences for next time!")
-            print("- no (hit return without typing anything)")
-            print("- yes (type anything then hit return)")
-            if input("Your choice: "):
+            print("- No (hit return without typing anything)")
+            print("- Yes (type anything then hit return)")
+            if input("Your choice? "):
                 self._df = self._df.append(dict_res, ignore_index=True)
                 self._save()
 
@@ -310,4 +313,3 @@ class FandomTaxonomyCSV(FandomTaxonomy):
 
     def close(self):
         """ Unused, here for compatibility with SQLite version. """
-        pass

@@ -2,7 +2,15 @@
 """ Command line program """
 
 from argparse import ArgumentParser
-from project_handler import ProjectHandler
+from project_id import ProjectID
+from ao3_drafter import Ao3Poster
+from audio_handler import AudioHandler
+from dw_poster import DWPoster
+from gdrive_uploader import GDriveUploader
+from html_downloader import HTMLDownloader
+from ia_uploader import IAUploader
+from project_files_tracker import FileTracker
+from project_metadata import ProjectMetadata
 
 
 if __name__ == "__main__":
@@ -17,14 +25,56 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     verbose = not args.quiet
+    project_id = ProjectID(fandom_abr=args.fandom, raw_title=args.title)
+    files = FileTracker(project_id, verbose)
 
     if args.mode == "new":
-        handle = ProjectHandler(
-            link=args.link, fandom_abr=args.fandom, raw_title=args.title,
-            mode="extract", verbose=verbose)
+        # Downloading parent work html
+        link = args.link if args.link else input("Link to parent work(s): ")
+        HTMLDownloader(verbose=verbose).download_html(link, files.folder)
+        files.update_file_paths()
+
+        # Extracting info from html
+        metadata = ProjectMetadata(files, mode="from html", verbose=verbose)
 
     if args.mode == "post":
-        handle = ProjectHandler(
-            link=args.link, fandom_abr=args.fandom, raw_title=args.title,
-            mode="saved", verbose=verbose)
-        handle.post()
+        metadata = ProjectMetadata(files, mode="from yaml", verbose=verbose)
+
+        # Adding posting date to metadata
+        metadata.add_posting_date()
+
+        # Editing audio files for names and metadata
+        audio = AudioHandler(project_id, files, metadata, verbose)
+        audio.rename_wip_audio_files()
+        audio.add_cover_art()
+        audio.update_metadata()
+        audio.save_audio_length()
+        files.update_file_paths()
+
+        # Uploading to gdrive
+        gdrive_uploader = GDriveUploader(project_id, files, metadata, verbose)
+        gdrive_uploader.upload_audio()
+        gdrive_uploader.upload_cover()
+        # gdrive_uploader.upload_metadata()
+
+        # Uploading to the internet archive
+        ia_uploader = IAUploader(project_id, files, metadata, verbose)
+        ia_uploader.upload_audio()
+        ia_uploader.upload_cover()
+        ia_uploader.upload_metadata()
+
+        # Drafting ao3 post
+        ao3_poster = Ao3Poster(project_id, files, metadata, verbose)
+        ao3_poster.draft_podfic()
+
+        # Uploading ao3 info to gdrive and ia
+        gdrive_uploader.upload_metadata()
+        ia_uploader.update_description()
+        ia_uploader.upload_metadata()
+
+        # Posting to dw
+        dw_poster = DWPoster(project_id, files, metadata, verbose)
+        dw_poster.save_dw_post_text()
+
+        # Saving tracker info
+        # ??.save_tracker_info()

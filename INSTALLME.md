@@ -48,4 +48,5 @@ Will use the ao3-downloader settings, no need to do anything.
 ## Adapting the rest
 
 - project_files_tracker.py: the path to the parent folder of all the project folders
+- template_filler.py: all of it, but mostly the contact info
 - ?? a lot

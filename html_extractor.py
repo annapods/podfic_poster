@@ -1,8 +1,12 @@
+# pylint: disable=too-few-public-methods
 # -*- coding: utf-8 -*-
 """ Extracting data from parent work html
-No argparse/main """
+No argparse/main
+NOTE had to add the re.DOTALL flag in _get_summaries, might have to everywhere else, too
+ """
 
 import regex as re
+from base_object import VerboseObject
 
 
 def flatten(list_of_lists):
@@ -14,19 +18,13 @@ def remove_dup(list_of_items):
     return list(set(list_of_items))
 
 
-class HTMLExtractor:
+class HTMLExtractor(VerboseObject):
     """ Data extraction from downloaded ao3 html files using regex
     Use extract_html_data to get the info """
 
     def __init__(self, html_file_paths, verbose=True):
-        self._verbose = verbose
+        super().__init__(verbose)
         self._load_html(html_file_paths)
-
-
-    def _vprint(self, string:str, end:str="\n"):
-        """ Print if verbose """
-        if self._verbose:
-            print(string, end=end)
 
 
     def _load_html(self, file_paths):
@@ -63,8 +61,12 @@ class HTMLExtractor:
 
     def _get_authors(self):
         """ Extracts and returns authors (url, pseud) """
+        # Get author credits section
+        regex = r"""<div class="byline">by (.*?)</div>"""
+        blobs = [re.findall(regex, work)[0] for work in self._html_works]
+        # Extract all (link, pseud) pairs from credit section
         regex = r"""<a rel="author" href="(.*?)">(.*?)<\/a>"""
-        authors = [re.findall(regex, work) for work in self._html_works]
+        authors = [re.findall(regex, blob) for blob in blobs]
         authors = remove_dup(flatten(authors))
         return authors
 
@@ -95,7 +97,7 @@ class HTMLExtractor:
         """ Extracts and returns summaries """
         regex = r"""<p>Summary<\/p>
       <blockquote class="userstuff"><p>(.*?)<\/p><\/blockquote>"""
-        summaries = [re.findall(regex, work)[0] for work in self._html_works]
+        summaries = [re.findall(regex, work, re.DOTALL)[0] for work in self._html_works]
         return summaries
 
 
@@ -116,18 +118,30 @@ class HTMLExtractor:
             + r"""Archive of Our Own<\/a> at <a href="(.*?)">"""
         urls = [re.findall(regex, work) for work in self._html_works]
         return  flatten(urls)
+    
+
+    def _get_language(self):
+        """ Extracts and returns work language """
+        regex = fr"""<dt>Language:</dt>
+        <dd>(.*?)</dd>"""
+        languages = [re.findall(regex, work)[0] for work in self._html_works]
+        languages = remove_dup(languages)
+        if len(languages) > 1:
+            self._vprint("Found several languages in parent works:", ", ".join(languages))
+        return languages[0]
 
 
     def extract_html_data(self):
         """ Extracts and returns all info """
         self._vprint('Extracting data from parent work(s) html file(s)...', end=" ")
-        info = {
+        to_return = {
             "Parent Work URL": self._get_urls(),
             "Parent Work Title": self._get_titles(),
             "Writer": self._get_authors(),
             # "Series": self._get_series(),
             "Summary": self._get_summaries(),
             "Wordcount": self._get_wordcount(),
+            "Language": self._get_language(),
 
             "Archive Warnings": self._get_tags("Archive Warning"),
             "Rating": self._get_tags("Rating"),
@@ -138,5 +152,14 @@ class HTMLExtractor:
             "Additional Tags": self._get_tags("Additional Tags")
         }
 
-        self._vprint('done!')
-        return info
+        self._vprint('Done!')
+        return to_return
+
+
+if __name__ == "__main__":
+    # from html_extractor import HTMLExtractor
+    # import re
+    test_file_paths = [input("Filepath of the html file to test on:")]
+    extractor = HTMLExtractor(test_file_paths)
+    info = extractor.extract_html_data()
+    print(info)

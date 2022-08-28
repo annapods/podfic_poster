@@ -1,28 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-Project metadata (~= posting, ex: freeform tags)
+Project metadata (~= posting info, ex: freeform tags)
 Extracted from the parent work(s) html or from a saved file, with calls to HTMLExtractor
 and templates
 """
 
-from datetime import date
-import yaml
 from collections import UserDict
 from datetime import date
 import yaml
-import pandas
-from template_filler import Ao3Template
-from template_filler import DWTemplate
 from html_extractor import HTMLExtractor
 from fandom_taxonomy import FandomTaxonomyCSV as FandomTaxonomy
 # from fandom_taxonomy import FandomTaxonomySQLite as FandomTaxonomy
+from base_object import VerboseObject
 
 
-class ProjectMetadata(UserDict):
+class ProjectMetadata(UserDict, VerboseObject):
     """ Keeps track of all project metadata, aka, mostly ao3 metadata
 
     at initialisation:
-    - use "extract" mode to extract info from html files
+    - Use "extract" mode to extract info from html files
     - ... use "saved" mode to load info from saved info file
 
     afterward, use:
@@ -55,25 +51,26 @@ class ProjectMetadata(UserDict):
         "Occasion": "none",
         "Tracker Notes": "",
         "Tracker Notes (cont)": "",
-        "Content Notes": "If I forgot or misworded anything, please let me know!",
+        "Content Notes": "Nothing I can think of, but please let me know if I missed anything.",
         "BP": False,
         "Credits": [("__URL", "__TEXT")],
         "Stickers": False
     }
 
 
-    def __init__(self, project_tracker, mode="saved", verbose=True):
-        """ mode can be saved (from yaml) or extract (from html files using HTMLExtractor,
+    def __init__(self, files, mode="from yaml", verbose=True):
+        """ mode can be from yaml (saved metadata) or from html (using HTMLExtractor,
         with default values) """
-        super().__init__(**ProjectMetadata.default_values)
+        VerboseObject.__init__(self, verbose)
+        UserDict.__init__(self, **ProjectMetadata.default_values)
         self._verbose = verbose
-        self._save_as = project_tracker.files.metadata
-        assert mode in ["saved", "extract"], \
-            "/!\\ that is not a valid mode of work creation"
+        self._save_as = files.metadata
+        assert mode in ["from html", "from yaml"], \
+            "ProjectMetadata mode must be 'from html' or 'from yaml'."
 
-        if mode == "extract":
+        if mode == "from html":
             # Extract metadata from fic html files
-            extractor = HTMLExtractor(project_tracker.files.fic, verbose)
+            extractor = HTMLExtractor(files.fic, verbose)
             self.data.update(extractor.extract_html_data())
             # Get fandom info (preferred tags, media category) from fandom taxonomy
             self._get_fandom_info()
@@ -81,16 +78,10 @@ class ProjectMetadata(UserDict):
             self._save()
             # print(self["Categories"])
 
-        if mode == "saved":
+        if mode == "from yaml":
             # Load from saved file
             with open(self._save_as, 'r') as file:
                 self.data.update(yaml.safe_load(file))
-
-
-    def _vprint(self, string:str, end:str="\n"):
-        """ Print if verbose """
-        if self._verbose:
-            print(string, end=end)
 
     def _save(self):
         """ Saves the to the yaml file """
@@ -126,6 +117,8 @@ class ProjectMetadata(UserDict):
         """ Returns the adequate audio length additional tag """
 
         assert self["Audio Length"] != ProjectMetadata.default_values['Audio Length']
+        # TODO regex to capture three first numbers separated by ':', for cases like
+        # "00:10:49 (+freetalk: 26:45)"
         hours, minutes, _ = self["Audio Length"].split(":")
         hours, minutes = int(hours), int(minutes)
 
@@ -155,13 +148,14 @@ class ProjectMetadata(UserDict):
             if hours >= min_hours and minutes >= min_minutes:
                 return tag
         assert False, "BUG"
+        return ""
 
 
     def _get_fandom_info(self):
         """ Get the preferred version of the fandom tags and the media category using
         FandomTaxonomy. """
         fandom_taxonomy = FandomTaxonomy()
-        preferred_tags, main_tag, abr, category = fandom_taxonomy.get_all_info(self["Fandoms"])
+        preferred_tags, _, _, category = fandom_taxonomy.get_all_info(self["Fandoms"])
         self.update_md("Fandoms", preferred_tags)
         self.update_md("Media Category", category)
 
@@ -183,8 +177,10 @@ class ProjectMetadata(UserDict):
                 assert func(category), f"/!\\ check {category}"
 
         def at_most_one_func(category):
-            if category not in self: return True
-            if isinstance(self[category], str): return True
+            if category not in self:
+                return True
+            if isinstance(self[category], str):
+                return True
             if isinstance(self[category], list) and len(self[category]) == 1:
                 self[category] = self[category][0]
                 return True
@@ -195,7 +191,7 @@ class ProjectMetadata(UserDict):
 
         def not_default_func(category):
             return self[category] != ProjectMetadata.default_values[category]
-        
+
         assert_func(at_most_one_func, at_most_one_categories)
         assert_func(at_least_one_func, at_least_one_categories)
         assert_func(not_default_func, not_default_categories)
@@ -213,7 +209,7 @@ class ProjectMetadata(UserDict):
                 "Rape/Non-Con",
                 "Underage"
         ], "/!\\ check Archive Warnings"
-    
+
         # for category in self["Categories"]:
         #     assert category in [
         #         "F/F", "F/M", "Gen", "M/M", "Multi", "Other"

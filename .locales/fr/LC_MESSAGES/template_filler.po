@@ -1,0 +1,224 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-08-28 20:29+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: template_filler.py:84
+msgid "and"
+msgstr "et"
+
+#: template_filler.py:96 template_filler.py:136
+msgid "Cover art."
+msgstr "Jaquette de couverture."
+
+#: template_filler.py:97 template_filler.py:136
+msgid "Cover art welcome."
+msgstr "Pas (encore) de jaquette de couverture."
+
+#: template_filler.py:132 template_filler.py:194 template_filler.py:202
+#: template_filler.py:206
+msgid ":"
+msgstr " :"
+
+#: template_filler.py:140
+msgid "Parent works"
+msgstr "Oeuvres parentes"
+
+#: template_filler.py:142
+msgid "Writers"
+msgstr "Ecrivain.e.s"
+
+#: template_filler.py:143
+msgid "Readers"
+msgstr "Narrateur.trice.s"
+
+#: template_filler.py:144 template_filler.py:247
+msgid "Context"
+msgstr "Contexte"
+
+#: template_filler.py:145
+msgid "Fandoms"
+msgstr "Fandoms"
+
+#: template_filler.py:146
+msgid "Pairings"
+msgstr "Relations"
+
+#: template_filler.py:147
+msgid "Characters"
+msgstr "Personnages"
+
+#: template_filler.py:148
+msgid "Tags"
+msgstr "Tags"
+
+#: template_filler.py:149
+msgid "Rating"
+msgstr "Rating"
+
+#: template_filler.py:150 template_filler.py:277
+msgid "Content notes"
+msgstr "Remarques sur le contenu"
+
+#: template_filler.py:151 template_filler.py:273
+msgid "Additional credits"
+msgstr "Autres crédits"
+
+#: template_filler.py:153
+msgid "Audio length (incl. potential endnotes)"
+msgstr "Durée (en comptant les éventuelles notes de fin)"
+
+#: template_filler.py:155
+msgid "Summary"
+msgstr "Résumé"
+
+#: template_filler.py:158
+msgid "Link to podfics"
+msgstr "Liens vers la podfic"
+
+#: template_filler.py:186
+msgid "Written by"
+msgstr "Ecrit par"
+
+#: template_filler.py:215
+msgid ""
+"Mp3 and raw audio files for download and streaming as well as any other "
+"files relevant to this work. See the side of the page (\"download options\") "
+"for the different formats/files. The mp3 will be under \"VBR MP3\"."
+msgstr ""
+"Fichiers mp3 et wav à télécharger ou écouter sur le site, ainsi que tout "
+"autre fichier supplémentaire. Pour accéder aux différents formats/fichiers "
+"et pour les télécharger, il faut trouver l’encadré \"download options\" à "
+"droite de la page. Le fichier mp3 sera accessible par le lien \"VBR MP3\"."
+
+#: template_filler.py:224
+msgid "Mp3 file(s) to stream or download on gdrive."
+msgstr "Fichier(s) mp3 à télécharger ou à écouter sur le site."
+
+#: template_filler.py:231
+msgid "Browser streaming"
+msgstr "Ecouter directement sur ao3"
+
+#: template_filler.py:240
+msgid "Podfic files"
+msgstr "Fichiers de la podfic"
+
+#: template_filler.py:246
+msgid "This was created for"
+msgstr "Créé pour"
+
+#: template_filler.py:253
+msgid "for giving blanket permission to podfics!"
+msgstr "pour avoir donné sa permission aux podfics !"
+
+#: template_filler.py:254
+msgid "for letting me record this work!"
+msgstr "pour m'avoir donné la permission d'enregistrer cette fic !"
+
+#: template_filler.py:256
+msgid "Thanks to"
+msgstr "Merci à"
+
+#: template_filler.py:259
+msgid "Thanks"
+msgstr "Remerciements"
+
+#: template_filler.py:267
+msgid "Lemon rating stickers"
+msgstr "Autocollants citrons"
+
+#: template_filler.py:287
+msgid "Notes"
+msgstr "Remarques"
+
+#: template_filler.py:293
+msgid "Names"
+msgstr "Noms"
+
+#: template_filler.py:293
+msgid "or"
+msgstr "ou"
+
+#: template_filler.py:294
+msgid "Pronouns"
+msgstr "Pronoms"
+
+#: template_filler.py:294
+msgid "she or they"
+msgstr "elle ou iel"
+
+#: template_filler.py:295
+msgid "Socials"
+msgstr "Réseaux sociaux"
+
+#: template_filler.py:300
+msgid "Email"
+msgstr "Adresse mail"
+
+#: template_filler.py:304
+msgid "Contact info"
+msgstr "Me contacter"
+
+#: template_filler.py:308
+msgid "What to say/not to say"
+msgstr "Que dire"
+
+#: template_filler.py:310
+msgid ""
+"I'd love to hear from you! Be it a single word or emoji, a long freetalk on "
+"your thoughts and feelings, recs for things to read or listen to that you "
+"think I might like, meta, further transformative works, ...\"<br>\n"
+"\"I will love you forever: \"this is how I experienced this work\", \"you "
+"might be interested by this other tool or method\", \"you kind of fucked up "
+"there on that front\", \"I have some concrit on this aspect, would you be "
+"interested in hearing it?\"<br>\n"
+"I will still like you but it's going to be awkward: \"I think you should "
+"change the way you do things to fit my own preferences\", \"I usually don't "
+"like this thing, but you're not like other podficcers\", \"I loved so and so "
+"about the writing that you didn't write and this comment is really for the "
+"writer\".<br>\n"
+"Some super useful podfic feedback tools by Mo: <a href=\"https://yue-ix."
+"dreamwidth.org/144236.html\">how to</a> and <a href=\"https://podfic-tips."
+"livejournal.com/95933.html\">vocabulary</a>"
+msgstr ""
+"J'adorerais lire ce que tu as à me dire ! Que ce soit un petit smiley, une "
+"dissert de quinze pages, des recommandations de trucs à lire ou à écouter, "
+"de la méta en tout genre, un callout poli, un message vocal, ...Il y a "
+"certaines remarques qui passent pas très bien, du genre \"tu devrais faire ça"
+"\" ou \"J'adore cette fic ! [ne mentionne pas du tout la podfic]\" ou encore "
+"\"d'habitude je déteste les les podfics, mais...\"C'est pas si grave non "
+"plus, mais dans le doute/si ça t'intéresse, Mo a écrit de super ressources "
+"sur le sujet : <a href=\"https://yue-ix.dreamwidth.org/144236.html\">guide</"
+"a> et <a href=\"https://podfic-tips.livejournal.com/95933.html\">lexique</a>."
+
+#: template_filler.py:329
+msgid "When to expect a reply"
+msgstr "Quand s'attendre à une réponse"
+
+#: template_filler.py:330
+msgid ""
+"Leaving me comments is kind of like starting a snail mail exchange in reply "
+"to a message in a bottle. I might not answer quickly (as in, it could take "
+"me... a couple of years...) but I will eventually!"
+msgstr ""
+"Dernière chose. Si je ne réponds pas tout de suite, c'est normal. Ça "
+"viendra ! C'est juste que parfois ça me prend un peu (beaucoup) de temps. "
+"Genre, des mois."
+
+#: template_filler.py:341
+msgid "Feedback"
+msgstr "Retours"

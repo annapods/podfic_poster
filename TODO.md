@@ -7,6 +7,8 @@
 [x] upload to gdrive
 [x] upload to ia
 [x] upload to ao3
+    [-] archive lock
+    [-] pairing categories
 [x] save dw text post
     [-] post by email
 [x] fandom taxonomy
