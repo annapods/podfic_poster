@@ -21,6 +21,9 @@ template.html
 *.pot
 *.po~
 
+# Testing stuff
+*test*
+
 ## Everything after that is from the template .gitignore and probably not applicable
 # Byte-compiled / optimized / DLL files
 __pycache__/

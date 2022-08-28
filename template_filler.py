@@ -5,44 +5,6 @@
 """
 Filling ao3 and dw posting templates
 TODO tracker
-
-NOTE on internalisation
-https://simpleit.rocks/python/how-to-translate-a-python-project-with-gettext-the-easy-way/
-
-
-## To add a new language
-
-# Set some variables
-NAME=template_filler
-DIR=.locales
-LANG=fr
-
-# Gather all strings to be translated, don't edit that file by hand, no need to regenerate if
-# no changes since last time
-# Note, calls to translator in f strings seem not to be picked up
-xgettext -d $NAME --keyword=i18l -o $DIR/$NAME.pot template_filler.py --from-code=UTF-8
-
-# Make a language-specific copy, fill the translations
-cp $DIR/$NAME.pot $DIR/$LANG/LC_MESSAGES/$NAME.po
-
-# Create the binary file gettext will actually use
-msgfmt -o $DIR/$LANG/LC_MESSAGES/$NAME.mo $DIR/$LANG/LC_MESSAGES/$NAME.po
-
-
-## To update after changes
-
-# Update base file
-NAME=template_filler
-DIR=.locales
-xgettext -d $NAME --keyword=i18l -o $DIR/$NAME.pot template_filler.py
-
-# Use it to update language file, go update the translations
-LANG=fr
-msgmerge --update $DIR/$LANG/LC_MESSAGES/$NAME.po $DIR/$NAME.pot
-
-# Update the binary file
-msgfmt -o $DIR/$LANG/LC_MESSAGES/$NAME.mo $DIR/$LANG/LC_MESSAGES/$NAME.po
-
 """
 
 from typing import List, Tuple
