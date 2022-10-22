@@ -1,5 +1,11 @@
+# Technical stuff
+
 [-] test install
 [-] ao3downloader in requirements -> possible to automatize download?
+[-] other libraries for download, parsing, posting
+
+# Current workflow
+
 [x] download html
 [x] extract data
 [x] fill templates

@@ -55,19 +55,17 @@ if __name__ == "__main__":
         gdrive_uploader = GDriveUploader(project_id, files, metadata, verbose)
         gdrive_uploader.upload_audio()
         gdrive_uploader.upload_cover()
-        # gdrive_uploader.upload_metadata()
 
         # Uploading to the internet archive
         ia_uploader = IAUploader(project_id, files, metadata, verbose)
         ia_uploader.upload_audio()
         ia_uploader.upload_cover()
-        ia_uploader.upload_metadata()
 
         # Drafting ao3 post
         ao3_poster = Ao3Poster(project_id, files, metadata, verbose)
         ao3_poster.draft_podfic()
 
-        # Uploading ao3 info to gdrive and ia
+        # Uploading project info to gdrive and ia
         gdrive_uploader.upload_metadata()
         ia_uploader.update_description()
         ia_uploader.upload_metadata()

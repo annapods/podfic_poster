@@ -82,7 +82,7 @@ class IAUploader(VerboseObject):
             identifier = re.sub(r'--', '-', identifier)
 
         while len(identifier) <= 5:
-            print(f"/!\\ automatically generated identifier {identifier} is too short!")
+            print(f"Automatically generated identifier {identifier} is too short!")
             print("You can:")
             print("- Quit (hit return)")
             print("- input a new one (input it now)")

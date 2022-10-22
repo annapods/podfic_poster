@@ -17,7 +17,7 @@ class HTMLDownloader(VerboseObject):
     def download_html(self, link, folder):
         """ Downloading! Edited from ao3downloader/actions/ao3download.py """
 
-        self._vprint("Downloading html...")
+        self._vprint("\nDownloading html...")
         session = requests.sessions.Session()
         ao3dl_globals.ao3_login(session, login=True)
         logfile = ao3dl_globals.get_logfile(DOWNLOAD_FOLDER_NAME)

@@ -272,7 +272,7 @@ class Ao3Template(Template):
             i18l(
             "I'd love to hear from you! Be it a single word or emoji, a long freetalk on your " \
                 + 'thoughts and feelings, recs for things to read or listen to that you think ' \
-                + 'I might like, meta, further transformative works, ..."<br>\n"' \
+                + 'I might like, meta, further transformative works, ...<br>\n' \
             + 'I will love you forever: "this is how I experienced this work", "you might be ' \
                 + 'interested by this other tool or method", "you kind of fucked up there on ' \
                 + 'that front", "I have some concrit on this aspect, would you be interested ' \

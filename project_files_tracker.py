@@ -118,7 +118,7 @@ class FileTracker(VerboseObject):
 
         # If the folder already exists...
         if exists(folder):
-            print(f"Found a project folder! {folder}")
+            print(f"\nFound a project folder! {folder}")
             print("You can:")
             print("- Use it (hit return without typing anything)")
             print("- Quit (type quit and then hit return)")
@@ -132,7 +132,7 @@ class FileTracker(VerboseObject):
             return self._get_folder(choice)
 
         # If the folder doesn't exist...
-        print(f"That folder doesn't exist yet: {folder}")
+        print(f"\nThat folder doesn't exist yet: {folder}")
         print("You can:")
         print("- Create it (hit return)")
         print("- Quit (type quit)")
