@@ -1,6 +1,10 @@
 
 # Set up
 
+## Python
+
+Tested with python3.7 on Ubuntu.
+
 ## Virtual environment
 
 Open up a terminal, cd to the repertory.
@@ -21,11 +25,11 @@ pip install -r requirements.txt
 
 ## Ao3 downloader
 
-Code at https://github.com/nianeyna/ao3downloader, but I'm using an older version that is compatible with python3.7 so...?? And actually, are there any changes to the original code or not?
+Code [here](https://github.com/ericfinn/ao3downloader), this is an older version of [nianeyna's project](https://github.com/nianeyna/ao3downloader) that should be compatible with python<3.9. I haven't tested it yet, though.
 
 First time running it, it will ask for user name and password, and save them in settings.json.
 
-WARNING saves settings in plain text, which is not at all secure... no idea how to do it
+WARNING saves settings in plain text, which is not very secure... no idea how to do it
 differently though.
 
 ## Internet archive

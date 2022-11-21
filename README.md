@@ -99,7 +99,7 @@ python main.py new --title="Wayne Enterprise" --fandom=DCU --link="https://archi
 #### Fandom taxonomy
 
 After that, the program asks for some fandom taxonomy stuff. For reference:
-- preferred tags are the tags you want on the ao3 work.
+- Preferred tags are the tags you want on the ao3 work.
 - Main tracking tag is the name of the fandom in the tracker spreadsheet*.
 - The abbreviation is used in the name and metadata of the audio files, and is the same as asked previously.
 - Categories are the fandom categories in the tracker spreadsheet*.

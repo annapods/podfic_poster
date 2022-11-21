@@ -80,16 +80,25 @@ class HTMLExtractor(VerboseObject):
 
     def _get_wordcount(self):
         """ Extracts, sums up and returns total wordcount """
-        regex = r"""(?<=<dt>Stats:<\/dt>
+        # Regex for one-chapter works
+        regex1 = r"""(?<=<dt>Stats:<\/dt>
       <dd>
         Published: [0-9-]+
-        Words: |dt>Stats:<\/dt>
+        Words: )[0-9]+(?=
+      <\/dd>)"""
+        # Regex for multi-chapter works
+        regex2 = r"""(?<=<dt>Stats:<\/dt>
       <dd>
         Published: [0-9-]+
           Completed: [0-9-]+
         Words: )[0-9]+(?=
       <\/dd>)"""
-        wordcounts = [int(re.findall(regex, work)[0]) for work in self._html_works]
+        wordcounts = []
+        for regex in [regex1, regex2]:
+            for work in self._html_works:
+                found = re.findall(regex, work)
+                if found:
+                    wordcounts.append(int(found[0]))
         return sum(wordcounts)
 
 
