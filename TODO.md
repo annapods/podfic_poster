@@ -1,7 +1,7 @@
 # Technical stuff
 
 [-] test install
-[-] ao3downloader in requirements -> possible to automatize download?
+[-] ao3downloader in requirements -> possible to automatize download? from fork
 [-] other libraries for download, parsing, posting
 
 # Current workflow
@@ -21,7 +21,7 @@
 [-] fill tracker
     [-] add tracker tag to work info somehow
     [?] tracker in sqlite
-[-] files handling after posting
+[-] handle files after posting
     [-] delete unnecessary files (ask first)
     [-] rename folder with posting date
     [-] move to posted/to crosspost
