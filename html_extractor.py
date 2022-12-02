@@ -15,7 +15,11 @@ def flatten(list_of_lists):
 
 def remove_dup(list_of_items):
     """ Aux function, removes duplicates from list """
-    return list(set(list_of_items))
+    new = []
+    for item in list_of_items:
+        if item not in new:
+            new.append(item)
+    return new
 
 
 class HTMLExtractor(VerboseObject):
