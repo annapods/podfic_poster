@@ -15,12 +15,12 @@ certifi==2020.12.5
 chardet==4.0.0
 EbookLib==0.17.1
 idna==2.10
-lxml==4.6.3
+lxml==4.9.1
 requests==2.25.1
 six==1.16.0
 soupsieve==2.2.1
 tqdm==4.60.0
-urllib3==1.26.4
+urllib3==1.26.5
 
 # ao3-poster
 # a new minor update to markupsafe changed the name of a function
