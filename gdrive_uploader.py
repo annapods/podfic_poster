@@ -109,7 +109,7 @@ class GDriveUploader(VerboseObject):
         for child_name in folders[1:]:
             parent_id = self._get_child_id(parent_id, child_name)
 
-        title = f'[{self._project_id.fandom_abr.upper()}] {self._project_id.safe_title}'
+        title = f'[{self._project_id.fandom_abr}] {self._project_id.safe_title}'
 
         # drive.CreateFile does not actually upload the file, only creates the object
         # If the filder already exists, just get it

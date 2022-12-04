@@ -1,7 +1,7 @@
 
 # Usage
 
-## [1] Getting a project ready for posting
+## 1 Getting a project ready for posting
  
 In order to use this helper, you need to follow a few naming conventions.
 
@@ -20,7 +20,7 @@ Cover files:            idwta.png, idwta.svg
 
 Cover art files are optional. Any metadata added to the wip audio files manually might be overwritten or deleted.
 
-## [2] Creating the info file
+## 2 Creating the info file
 
 Here is what the program will do:
 - Download the parent work(s)
@@ -147,13 +147,13 @@ Which preferred tags for Batman - All Media Types? You can:
 Your choice?
 ```
 
-## [3] Completing the metadata
+## 3 Completing the metadata
 
 You then need to edit the yaml file with any missing info. It also wouldn't hurt to double-check everything is named right so that the program will find all the files.
 
 Note that the order of the original ao3 tags might get shuffled.
 
-## [4] Uploading and drafting
+## 4 Uploading and drafting
 
 The goals here are to:
 - Upload all the files to google drive and the internet archive
@@ -268,7 +268,7 @@ And lastly, the program prepares the dreamwidth html and adds it to the stockpil
 Creating dw template... saving in ../../../Musique/2.5 to post/dw.txt... Done!
 ```
 
-## [5] Finishing up
+## 5 Finishing up
 
 - Double-check the ao3 draft and hit post
 - Cross-post to dreamwidth if you want
