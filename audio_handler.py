@@ -94,7 +94,7 @@ class AudioHandler(VerboseObject):
                 audio.tags["TITLE"] = [self._metadata_title]
                 if n_tracks > 1:
                     track_number = get_padded_track_number_string(
-                        track_number, n_tracks)
+                        track_number+1, n_tracks)
                     audio.tags["TITLE"] = [f'{self._metadata_title} ({track_number}/{n_tracks})']
                 audio.tags["ALBUM"] = [self._metadata_title]
                 audio.tags["ARTIST"] = [artist]
@@ -176,7 +176,7 @@ class AudioHandler(VerboseObject):
             return [rename_one(
                 paths[i],
                 f'''{new_path_start} ''' \
-                    + f'''{get_padded_track_number_string(i, len(paths))}''' \
+                    + f'''({get_padded_track_number_string(i+1, len(paths))})''' \
                     + f'''.{ext}'''
                 ) for i in range(len(paths))
             ]
