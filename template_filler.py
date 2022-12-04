@@ -56,8 +56,8 @@ class Template(VerboseObject):
 
     @staticmethod
     def get_img(link:str="", width:int=0, height:int=0,
-        img_alt_text:str=i18l("Cover art."),
-        no_img_alt_text:str=i18l("Cover art welcome."))-> str:
+        img_alt_text:str="",
+        no_img_alt_text:str="")-> str:
         """ Formats info into the html for an embedded image """
         template = f'''<img src="{link}"''' if link else '''<img src="COVER"'''
         if width: template += f' width="{width}"'
@@ -305,8 +305,8 @@ class Ao3Template(Template):
 
     def _get_cover_art(self) -> str:
         """ Cover art """
-        content = f'''<p align="center">{self.get_img(self._info["IA Cover Link"],
-            width=250)}'''
+        content = f'''<p align="center">{self.get_img(self._info["IA Cover Link"], width=250,
+            img_alt_text=i18l("Cover art."), no_img_alt_text=i18l("Cover art welcome."))}'''
         if self._info["Cover Artist"]:
             content += f'''<br>\n{i18l("Cover art by")} ''' \
                 + self.get_enum_links(self._info["Cover Artist"])
