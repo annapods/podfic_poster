@@ -67,15 +67,16 @@ class Template(VerboseObject):
         return template
 
     @staticmethod
-    def get_li(items:List[str]) -> str:
-        """ Formats items into the html code for an <li> list """
-        if items: return "".join([f'''<li>{item}</li>''' for item in items])
-        return ""
-
-    @staticmethod
     def add_tag(tag:str, string:str) -> str:
         """ Encloses the string in the html tag """
         return f"<{tag}>{string}</{tag}>"
+
+    @staticmethod
+    def get_li(items:List[str]) -> str:
+        """ Formats items into the html code for an <li> list """
+        if items: return Template.add_tag(
+            "ul", "".join([f'''<li>{item}</li>''' for item in items]))
+        return ""
 
 
 ### DW
@@ -162,7 +163,10 @@ class Ao3Template(Template):
         if not content: return ""
         if content.startswith("<li>"):  # an attempt at fixing whatever happens to
             # <li> formatting somewhere between yaml and ao3...
-            template = self.add_tag("strong", title+i18l(':')) + content
+            template = self.add_tag("p",
+                self.add_tag("strong", title+i18l(':')
+                ) + content
+            )
         else:
             template = self.add_tag("p",
                 self.add_tag("strong",
