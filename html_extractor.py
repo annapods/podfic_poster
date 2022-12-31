@@ -109,7 +109,7 @@ class HTMLExtractor(VerboseObject):
     def _get_summaries(self):
         """ Extracts and returns summaries """
         regex = r"""<p>Summary<\/p>
-      <blockquote class="userstuff"><p>(.*?)<\/p><\/blockquote>"""
+      <blockquote class="userstuff">(<p>|)([\s\S]*?)<\/p><\/blockquote>"""
         summaries = [re.findall(regex, work, re.DOTALL)[0] for work in self._html_works]
         return summaries
 
