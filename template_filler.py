@@ -210,7 +210,7 @@ class Ao3Template(Template):
         """ Context section """
         occasion = self._info["Occasion"]
         content = "" if occasion in ["none", "n/a"] else \
-            i18l("This was created for")+" "+occasion
+            i18l("This was created for")+" "+occasion+"."
         return self._get_sub_section(i18l("Context"), content)
 
     def _get_thanks(self) -> str:
