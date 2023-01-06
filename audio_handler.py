@@ -162,10 +162,11 @@ class AudioHandler(VerboseObject):
         new_path_start = os.path.join(self._files.folder, self._file_title)
 
         def rename_one(old, new):
-            assert not os.path.exists(new), \
-                f"trying to rename {old} -> {new} but {new} already exists"
-            self._vprint(f"{old} -> {new}")
-            os.rename(old, new)
+            if not os.path.exists(new):
+                self._vprint(f"{old} -> {new}")
+                os.rename(old, new)
+            else:
+                self._vprint(f"trying to rename {old} -> {new} but {new} already exists")
             return new
 
         def rename_all(paths, ext):
