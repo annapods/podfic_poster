@@ -51,7 +51,7 @@ if __name__ == "__main__":
         audio.save_audio_length()
         files.update_file_paths()
 
-        # # Uploading to gdrive
+        # Uploading to gdrive
         gdrive_uploader = GDriveUploader(project_id, files, metadata, verbose)
         gdrive_uploader.upload_audio()
         gdrive_uploader.upload_cover()

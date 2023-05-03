@@ -49,7 +49,7 @@ class FileTracker(VerboseObject):
             - unformatted """
 
     # Path to the parent folder of all the project folders
-    wips_folder = "../../../Musique/2.5 to post"
+    wips_folder = "../../../Music/2.3 to post"
     # Path to the podfic tracker file, not yet implemented
     tracker = ""
     # Path to the DW file for accumulating podfics to xpost all at once

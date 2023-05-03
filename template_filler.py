@@ -311,9 +311,9 @@ class Ao3Template(Template):
         """ Cover art """
         content = f'''<p align="center">{self.get_img(self._info["IA Cover Link"], width=250,
             img_alt_text=i18l("Cover art."), no_img_alt_text=i18l("Cover art welcome."))}'''
-        if self._info["Cover Artist"]:
+        if self._info["Cover Artist(s)"]:
             content += f'''<br>\n{i18l("Cover art by")} ''' \
-                + self.get_enum_links(self._info["Cover Artist"])
+                + self.get_enum_links(self._info["Cover Artist(s)"])
         content += "</p>"
         return content
 

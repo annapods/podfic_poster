@@ -46,7 +46,7 @@ class ProjectMetadata(UserDict, VerboseObject):
         "Notes at the beginning": "",
         "Notes at the end": "",
         "Add co-creators?": [("__URL", "__PSEUD")],
-        "Cover Artist": [],
+        "Cover Artist(s)": [],
         "Work Type": "podfic",
         "Occasion": "none",
         "Tracker Notes": "",

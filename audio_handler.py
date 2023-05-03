@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """ Audio files: metadata, file names, etc """
 
-import datetime
-import sys
-import os
-import taglib
+from datetime import datetime
+from sys import exit as sys_exit
+from os.path import exists, join
+from taglib import File as taglib_File
 from mutagen.mp3 import MP3
 from mutagen.id3 import APIC
 from base_object import VerboseObject
@@ -81,7 +81,7 @@ class AudioHandler(VerboseObject):
                 choice = input("Your choice? ")
                 if choice != "":
                     print("Bye!")
-                    sys.exit()
+                    sys_exit()
 
         artist = self._get_artist_tag()
 
@@ -90,7 +90,7 @@ class AudioHandler(VerboseObject):
             for track_number, file_path in enumerate(file_paths):
                 track_number += 1
                 self._vprint(file_path)
-                audio = taglib.File(file_path)
+                audio = taglib_File(file_path)
                 audio.tags["TITLE"] = [self._metadata_title]
                 if n_tracks > 1:
                     track_number = get_padded_track_number_string(
@@ -100,7 +100,7 @@ class AudioHandler(VerboseObject):
                 audio.tags["ARTIST"] = [artist]
                 audio.tags["TRACKNUMBER"] = [f"{track_number}/{n_tracks}"]
                 audio.tags["GENRE"] = ["Podfic"]
-                audio.tags["DATE"] = [str(datetime.datetime.now().year)]
+                audio.tags["DATE"] = [str(datetime.now().year)]
                 audio.save()
 
         self._vprint("Done!\n")
@@ -108,7 +108,7 @@ class AudioHandler(VerboseObject):
     def save_audio_length(self):
         """ Gets the total audio length and saves it in the info file
         https://stackoverflow.com/questions/538666/format-timedelta-to-string """
-        seconds = sum([taglib.File(file_path).length for file_path \
+        seconds = sum([taglib_File(file_path).length for file_path \
             in self._files.audio.compressed.formatted])
         hours, remainder = divmod(seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
@@ -159,10 +159,10 @@ class AudioHandler(VerboseObject):
     def rename_wip_audio_files(self):
         """ Renames audio files from wip to final title """
         self._vprint("Renaming wip files...", end=" ")
-        new_path_start = os.path.join(self._files.folder, self._file_title)
+        new_path_start = join(self._files.folder, self._file_title)
 
         def rename_one(old, new):
-            if not os.path.exists(new):
+            if not exists(new):
                 self._vprint(f"{old} -> {new}")
                 os.rename(old, new)
             else:
