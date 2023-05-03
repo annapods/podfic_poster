@@ -23,6 +23,7 @@ class IAUploader(VerboseObject):
         self._project_id = project_id
         self._files = files
         self._project_metadata = metadata
+        self._skip_audio = False
         self._set_identifier(self._generate_identifier())
         self._ia_metadata = {
             'collection': 'opensource_audio',
@@ -50,10 +51,15 @@ class IAUploader(VerboseObject):
         else:
             print(f"An item with the same name already exists ({identifier})")
             print("You can:")
-            print("- Add to the existing item (hit return)")
+            print("- Add to, or update, all files to the existing item (hit return)")
             print("- Choose a new identifier (input the chosen identifier)")
+            print("- Skip the audio files but still add or update the other, lighter, files (input skip)")
+
             new = input("Your choice? ")
             if new == "":
+                self._identifier = identifier
+            elif new == "skip":
+                self._skip_audio = True
                 self._identifier = identifier
             else:
                 choice = input(f"sure you want to create a new item {new}? nothing for yes")
@@ -72,14 +78,12 @@ class IAUploader(VerboseObject):
         title = self._project_id.title_abr
         fandom = self._project_id.fandom_abr
 
-        # Concatenate fandom and title
-        identifier = f"{fandom} {title}"
-        # Lower case
-        identifier = identifier.lower()
-        # Replace anything not ASCII by -
-        identifier = re.sub(r'[\W]', '-', identifier)
-        while re.findall(r'--', identifier):
-            identifier = re.sub(r'--', '-', identifier)
+        def safe_string(string:str) -> str:
+            """ Lower, delete anything not ASCII """
+            return re.sub(r'[\W]', '', string.lower())
+
+        # Get identifier
+        identifier = f"{safe_string(fandom)}-{safe_string(title)}"
 
         while len(identifier) <= 5:
             print(f"Automatically generated identifier {identifier} is too short!")
@@ -109,6 +113,10 @@ class IAUploader(VerboseObject):
         """ Uploads audio files (mp3 and wav) to the ia item
         Also saves the streaming links to the work info """
         self._vprint("Uploading podfic files to ia...")
+
+        if self._skip_audio:
+            self._vprint("Skipping this step!")
+            return None
 
         # File uploads, both mp3s and wavs
         for path in self._files.audio.compressed.formatted + \
