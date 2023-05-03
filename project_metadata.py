@@ -26,7 +26,7 @@ class ProjectMetadata(UserDict, VerboseObject):
     - TODO create templates stuff
     """
 
-    mass_xpost_file = "../../../Musique/2.5 to post/dw.txt"
+    mass_xpost_file = "../../../Music/2.3 to post/dw.txt"
 
     default_values = {
         # filled automatically at some point
