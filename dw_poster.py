@@ -14,6 +14,7 @@ https://www.thepythoncode.com/article/use-gmail-api-in-python"""
 from project_files_tracker import FileTracker
 from template_filler import DWTemplate
 from base_object import VerboseObject
+from os.path import exists
 
 
 class DWPoster(VerboseObject):
@@ -103,9 +104,12 @@ class DWPoster(VerboseObject):
 
         if mass_xpost:
             self._vprint(f"saving in {FileTracker.dw_mass_xpost_file}...", end=" ")
-            # But first, a quick check if we haven't already added it
+            # Create the file if it doesn't exist
+            if not exists(FileTracker.dw_mass_xpost_file):
+                open(FileTracker.dw_mass_xpost_file, 'a', encoding="utf-8").close()
+            # Check if the info is already there
             # Only relevant if posting was done in several steps, with absolutely no change to
-            # the relevant data in between, so not a very common case, but *shrug*
+            # the relevant data in between
             with open(FileTracker.dw_mass_xpost_file, 'r', encoding="utf-8") as file:
                 existing = file.read()
             if post not in existing:
