@@ -1,24 +1,54 @@
 
 # Set up
 
-## Python
+## OS and programs
 
-Tested with python3.7 on Ubuntu.
+Requires python, pip and gettext. On Linux, these can be installed with:
+
+```bash
+sudo apt-get python3
+sudo apt-get pip
+sudo apt-get gettext
+```
+
+The latest version was tested with python3.10 on Ubuntu, but 3.7 should be fine too.
+
+## Git
+
+The easiest way to get the files is to clone the git repository.
+
+To install git:
+
+```bash
+sudo apt-get git
+```
+
+To clone the repository, create a folder wherever you want, open a terminal in the folder/navigate to it, and type:
+
+```bash
+git clone https://github.com/annapods/podfic_poster.git
+```
+
+Feel free to create a branch if you want, or whatever else.
+
+## Path to projects
+
+In project_files_tracker.py, edit the path to the parent folder of all the project folders.
 
 ## Virtual environment
 
 Open up a terminal, cd to the repertory.
 
 Linux/Mac:
-```python
-python3.7 -m venv .venv
+```bash
+python3.10 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
 Windows:
-```python
-python3.7 -m venv .venv
+```bash
+python3.10 -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 ```
@@ -34,23 +64,40 @@ differently though.
 
 ## Internet archive
 
-```python
+```bash
 ia configure
 ```
 
 Will ask for email and password and save them in ~/.config/internetarchive/ia.ini.
 
+If this step fails with an interpreter error, check that the path to the current directory doesn't contain any whitespace.
+
 ## Google drive
 
-- [Set up oauth](https://developers.google.com/workspace/guides/create-credentials#oauth-client-id)
-- [Add yourself as test users](https://console.developers.google.com/apis/credentials/consent?referrer=search&project=delta-entry-341918) (OAuth consent screen -> Test users)
+- [Set up oauth](https://developers.google.com/workspace/guides/create-credentials#oauth-client-id), with URI `http://localhost:8080`
+- [Add the email address attached to the gdrive account as test user](https://console.developers.google.com/apis/credentials/consent?referrer=search&project=delta-entry-341918) (OAuth consent screen -> Test users)
 
 ## Ao3 poster
 
 Will use the ao3-downloader settings, no need to do anything.
 
+## Template filler
+
+In order for the template filler to work, it needs some help translating from placeholders to an actual language. Currently, only English and French are suported. To compile the necessary files:
+
+```bash
+DIR=.locales
+DOMAIN=template_filler
+LANG=fr
+msgfmt -o $DIR/$LANG/LC_MESSAGES/$DOMAIN.mo $DIR/$LANG/LC_MESSAGES/$DOMAIN.po
+LANG=en
+msgfmt -o $DIR/$LANG/LC_MESSAGES/$DOMAIN.mo $DIR/$LANG/LC_MESSAGES/$DOMAIN.po
+```
+
+See the TRANSLATEME.txt file for information on how to add new languages. To adapt the template itself, you'll most likely need to edit the template_filler.py file and then go through the translation process again.
+
 ## Adapting the rest
 
-- project_files_tracker.py: the path to the parent folder of all the project folders
-- template_filler.py: all of it, but mostly the contact info
-- ?? a lot
+- 
+- template_filler.py: all of it, but mostly the contact info and the feedback policy
+- whatever else

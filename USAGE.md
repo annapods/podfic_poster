@@ -8,17 +8,17 @@ In order to use this helper, you need to follow a few naming conventions.
 For I don't wanna think anymore, a Hockey RPF fic, it would look something like this:
 
 ```
-Fandom abbreviation:    HRPF
-Project title:          I don't wanna think anymore
-Project abbreviation:   idwta
-Project folder:         hrpf - idwta
+Fandom abbreviation:        HRPF
+Project title:              I don't wanna think anymore
+Project abbreviation:       idwta
+Project folder:             hrpf - idwta
 
-Wip audio files:        idwta1.mp3, idwta2.mp3, idwta.wav, ...
-Cover files:            idwta.png, idwta.svg
+Audio files before prep:    idwta1.mp3, idwta2.mp3, idwta.wav, ...
+Cover files:                idwta.png, idwta.svg
 ...
 ```
 
-Cover art files are optional. Any metadata added to the wip audio files manually might be overwritten or deleted.
+Cover art files are optional. There can be one or several mp3 files, and one or several wav files. Any metadata added to these audio files manually might be overwritten or deleted. If you want to edit metadata further, edit in on the renamed/prepped audio files.
 
 ## 2 Creating the info file
 
@@ -93,7 +93,7 @@ After that, the program asks for some fandom taxonomy stuff. For reference:
 - The abbreviation is used in the name and metadata of the audio files, and is the same as asked previously.
 - Categories are the fandom categories in the tracker spreadsheet*.
 
-*The tracker spreadsheet part isn't coded out yet. To disable the whole thing, comment out `self._get_fandom_info()` in project_metatada.py.
+*The tracker spreadsheet part isn't implemented yet. To disable the whole thing, comment out `self._get_fandom_info()` in project_metatada.py.
 
 ```
 Which preferred tags for Batman - All Media Types? You can: 
@@ -151,6 +151,8 @@ Your choice?
 
 You then need to edit the yaml file with any missing info. It also wouldn't hurt to double-check everything is named right so that the program will find all the files.
 
+Note that a lot of info will not be filled out yet! For example, the podfic tags and the work text get added automatically in the next step.
+
 Note that the order of the original ao3 tags might get shuffled.
 
 ## 4 Uploading and drafting
@@ -196,7 +198,7 @@ Updating metadata...
 Done!
 ```
 
-The next step is the upload to gdrive and will require you to switch to the pop up window the program automatically opens. Pick an account with some storage space and the right authorizations.
+The next step is the upload to gdrive and will require you to switch to the pop up window the program automatically opens. Pick an account with some storage space and the right authorizations. Be aware that going through this step again might create a copy in your gdrive folder.
 
 ```
 Your browser has been opened to visit:
