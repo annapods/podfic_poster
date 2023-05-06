@@ -4,6 +4,7 @@
 from datetime import datetime
 from sys import exit as sys_exit
 from os.path import exists, join
+from os import rename
 from taglib import File as taglib_File
 from mutagen.mp3 import MP3
 from mutagen.id3 import APIC
@@ -164,7 +165,7 @@ class AudioHandler(VerboseObject):
         def rename_one(old, new):
             if not exists(new):
                 self._vprint(f"{old} -> {new}")
-                os.rename(old, new)
+                rename(old, new)
             else:
                 self._vprint(f"trying to rename {old} -> {new} but {new} already exists")
             return new
