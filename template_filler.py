@@ -78,6 +78,11 @@ class Template(VerboseObject):
             "ul", "".join([f'''<li>{item}</li>''' for item in items]))
         return ""
 
+    @staticmethod
+    def not_placeholder_link(link:str, text:str) -> bool:
+        """ Detects actual links, as opposed to placeholders """
+        return not (link.startswith("__") or text.startswith("__"))
+
 
 ### DW
 
@@ -93,18 +98,25 @@ class DWTemplate(Template):
         """ Formats the dw post html """
 
         def heading(header):
+            """ Formats a dw info header """
             return self.add_tag("str", (header+i18l(':')))+" "
+        
+        def heading_if_links(head:str, links:List[Tuple[str,str]], ending:str="") -> str:
+            """ Creates the header + content string if the link isn't a placeholder """
+            links = [(link, name) for link, name in links if self.not_placeholder_link(link, name)]
+            if links:
+                return heading(head) + self.get_enum_links(links) + ending
 
         cover = '<div style="text-align: center;">' \
             + self.get_img(self._info["IA Cover Link"], width=200, height=200,
             img_alt_text=i18l("Cover art."), no_img_alt_text=i18l("Cover art welcome.")) \
             + "</div>"
-        info = self.add_tag("p",
-            "<br>".join([
-                heading(i18l("Parent works")) + self.get_enum_links(
+
+        infos = [
+                heading_if_links("Parent works",
                     zip(self._info["Parent Work URL"], self._info["Parent Work Title"])),
-                heading(i18l("Writers")) + self.get_enum_links(self._info["Writer"]),
-                heading(i18l("Readers")) + self.get_enum_links(self._info["Creator/Pseud(s)"]),
+                heading_if_links(i18l("Writers"), self._info["Writer"]),
+                heading_if_links(i18l("Readers"), self._info["Creator/Pseud(s)"]),
                 heading(i18l("Context")) + self._info["Occasion"],
                 heading(i18l("Fandoms")) + ', '.join(self._info['Fandoms']),
                 heading(i18l("Pairings")) + ', '.join(self._info['Relationships']),
@@ -112,18 +124,21 @@ class DWTemplate(Template):
                 heading(i18l("Tags")) + ', '.join(self._info['Additional Tags']),
                 heading(i18l("Rating")) + self._info['Rating'],
                 heading(i18l("Content notes")) + self._info['Content Notes'],
-                heading(i18l("Additional credits")) \
-                    + self.get_enum_links(self._info['Credits']),
+                heading_if_links(i18l("Additional credits"), self._info['Credits']),
                 heading(i18l("Audio length (incl. potential endnotes)")) \
                     + self._info['Audio Length'],
                 heading(i18l("Summary")) + self._info['Summary']
-            ]))
+            ]
+        infos = [item for item in infos if item]
+        info = self.add_tag("p", "<br>".join(infos))
+
         links = self.add_tag("p",
-            heading(i18l("Link to podfics")) + self.get_enum_links([
+            heading_if_links(i18l("Link to podfics"), [
                 (self._info["Podfic Link"], "ao3"),
                 (self._info["IA Link"], "internet archive"),
                 (self._info["GDrive Link"], "gdrive")
         ]))
+        
         post = "\n\n".join([cover, info, links])
         return post
 
@@ -235,7 +250,7 @@ class Ao3Template(Template):
             ])
         if credit:
             credit = [self.get_a_href(link, name) for link, name in credit \
-                if not (link.startswith("__") or name.startswith("__"))]
+                if self.not_placeholder_link(link, name)]
         content = self.get_li(credit)
         return self._get_sub_section(i18l("Additional credits"), content)
 
