@@ -138,7 +138,7 @@ class DWTemplate(Template):
                 (self._info["IA Link"], "internet archive"),
                 (self._info["GDrive Link"], "gdrive")
         ]))
-        
+
         post = "\n\n".join([cover, info, links])
         return post
 
