@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """ Fandom taxonomy stuff! WIP """
 
-import sqlite3
-import pandas
+from sqlite3 import connect as sqlite3_connect
+from pandas import DataFrame, read_csv, concat
 from os.path import exists, join, dirname
 
 
@@ -58,7 +58,7 @@ class FandomTaxonomySQLite(FandomTaxonomy):
     db_path = "fandom_taxonomy.db"
 
     def __init__(self, db_path=db_path):
-        self._connection = sqlite3.connect(db_path)
+        self._connection = sqlite3_connect(db_path)
         self._cursor = self._connection.cursor()
         requests = [
             """CREATE TABLE IF NOT EXISTS AbrToCategory (
@@ -229,9 +229,9 @@ class FandomTaxonomyCSV(FandomTaxonomy):
 
     def __init__(self):
         if exists(FandomTaxonomyCSV.csv_path):
-            self._df = pandas.read_csv(FandomTaxonomyCSV.csv_path)
+            self._df = read_csv(FandomTaxonomyCSV.csv_path)
         else:
-            self._df = pandas.DataFrame(columns=FandomTaxonomyCSV.columns)
+            self._df = DataFrame(columns=FandomTaxonomyCSV.columns)
             self._save()
 
     def _save(self):
@@ -293,14 +293,15 @@ class FandomTaxonomyCSV(FandomTaxonomy):
             res.append(pick_option(to_pick, res[-1], list(candidates[to_pick])))
 
         if candidates.empty:
-            dict_res = dict(zip(FandomTaxonomyCSV.columns, res))
+            categories = FandomTaxonomyCSV.columns
             print("You chose:")
-            print(*[f"\n{category} -> {content}" for category, content in dict_res.items()])
+            print(*[f"\n{category} -> {content}" for category, content in zip(categories, res)])
             print("We can save these preferences for next time!")
             print("- No (hit return without typing anything)")
             print("- Yes (type anything then hit return)")
             if input("Your choice? "):
-                self._df = self._df.append(dict_res, ignore_index=True)
+                to_concat = DataFrame({category:[res] for category, res in zip(categories, res)})
+                self._df = concat([self._df, to_concat], ignore_index=True)
                 self._save()
 
         # turn key blobs into lists
