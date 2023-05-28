@@ -98,11 +98,13 @@ class HTMLExtractor(VerboseObject):
         Words: )[0-9]+(?=
       <\/dd>)"""
         wordcounts = []
+        print("debug 1", wordcounts)
         for regex in [regex1, regex2]:
             for work in self._html_works:
                 found = re.findall(regex, work)
                 if found:
                     wordcounts.append(int(found[0]))
+                print("debug 2", found)
         return sum(wordcounts)
 
 

@@ -26,9 +26,10 @@ class ProjectID:
         If that is not the original, will ask, since there are so many different cases """
         new = original
         new = new.replace(".", ",")  # . would be interpreted as a file extension
+        if new[-1] == ',':
+            new = new[:-1]  # a final , would look weird though
         new = new.replace("/", " ")  # / would be interpreted as a subfile or folder
-        if new[-1] == ',' or new[-1] == ' ':
-            new = new[:-1]  # a final , or " " would look weird though  # TODO regex/proof
+        new = ' '.join(new.split())  # removing extra whitespace
         if new != original:
             print("To make it safe for filepaths, the following safe title has been established"
                 " based on the original:")
