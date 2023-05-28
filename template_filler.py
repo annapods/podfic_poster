@@ -83,6 +83,10 @@ class Template(VerboseObject):
         """ Detects actual links, as opposed to placeholders """
         return not (link.startswith("__") or text.startswith("__"))
 
+    @staticmethod
+    def remove_placeholder_links(links:List[Tuple[str,str]]) -> List[Tuple[str,str]]:
+        """ Removes the placeholder links """
+        return [(link, name) for link, name in links if self.not_placeholder_link(link, name)]
 
 ### DW
 
@@ -103,7 +107,7 @@ class DWTemplate(Template):
         
         def heading_if_links(head:str, links:List[Tuple[str,str]], ending:str="") -> str:
             """ Creates the header + content string if the link isn't a placeholder """
-            links = [(link, name) for link, name in links if self.not_placeholder_link(link, name)]
+            links = self.remove_placeholder_links(links)
             if links:
                 return heading(head) + self.get_enum_links(links) + ending
 
@@ -161,7 +165,10 @@ class Ao3Template(Template):
         # Check if summary is the parent work's or if it has been edited for the podfic already
         # This is (clumsily) done using the audio length
         if self._info["Audio Length"] not in summary:
-            summary += f'\n\n{self._info["Audio Length"]} :: '
+            summary += f'\n\n{self._info["Audio Length"]}'
+            links = self.remove_placeholder_links(self._info["Writer"])
+            if links:
+            summary += ' :: '
             summary += i18l("Written by")+" "+self.get_enum_links(self._info["Writer"])+'.'
         return summary
 
