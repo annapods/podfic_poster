@@ -14,7 +14,7 @@ class HTMLDownloader(VerboseObject):
     """ Download parent work html from ao3 to the destination folder """
 
 
-    def download_html(self, link, folder):
+    def download_html(self, link:str, folder:str):
         """ Downloading! Edited from ao3downloader/actions/ao3download.py """
 
         self._vprint("\nDownloading html...")

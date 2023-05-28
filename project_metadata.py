@@ -12,6 +12,7 @@ from html_extractor import HTMLExtractor
 from fandom_taxonomy import FandomTaxonomyCSV as FandomTaxonomy
 # from fandom_taxonomy import FandomTaxonomySQLite as FandomTaxonomy
 from base_object import VerboseObject
+from typing import List
 
 
 class ProjectMetadata(UserDict, VerboseObject):
@@ -29,7 +30,7 @@ class ProjectMetadata(UserDict, VerboseObject):
     mass_xpost_file = "../../../Music/2.3 to post/dw.txt"
 
     default_values = {
-        # filled automatically at some point
+        # filled automatically
         "Language": "English",
         "Work text": "__WORK_TEXT",
         "Podfic Link": "__PODFIC_LINK",
@@ -42,31 +43,55 @@ class ProjectMetadata(UserDict, VerboseObject):
         "GDrive Link": "__URL",
         "Media Category": "__MEDIA_CATEGORY",
 
+        # filled automatically from the parent work html
+        "Parent Work URL": ["__URL"],
+        "Parent Work Title": ["__TITLE"],
+        "Writer": [("__URL", "__WRITER")],
+        # "Series": self._get_series(),
+        "Summary": ["__SUMMARY"],
+        "Wordcount": "__WORDCOUNT",
+        "Language": "__LANGUAGE",
+        "Archive Warnings": [
+            "__Choose Not To Use Archive Warnings",
+            "__Graphic Depictions Of Violence",
+            "__Major Character Death",
+            "__No Archive Warnings Apply",
+            "__Rape/Non-Con",
+            "__Underage"],
+        "Rating": "Not Rated_General Audiences_Teen And Up Audiences_Mature_Explicit",
+        "Categories": [
+            "__F/F", "__F/M", "__Gen", "__M/M", "__Multi", "__Other"
+        ],
+        "Fandoms": ["__FANDOM"],
+        "Relationships": ["__PAIRING"],
+        "Characters": ["__CHARACTER"],
+        "Additional Tags": ["__ADTL_TAG"],
+
         # to fill by hand
         "Notes at the beginning": "",
         "Notes at the end": "",
-        "Add co-creators?": [("__URL", "__PSEUD")],
-        "Cover Artist(s)": [],
+        "Add co-creators?": [("__URL", "__CO_CREATOR")],
+        "Cover Artist(s)": [("__URL", "__ARTIST")],
         "Work Type": "podfic",
         "Occasion": "none",
         "Tracker Notes": "",
         "Tracker Notes (cont)": "",
         "Content Notes": "Nothing I can think of, but please let me know if I missed anything.",
         "BP": False,
-        "Credits": [("__URL", "__TEXT")],
+        "Credits": [("__URL", "__CREDIT")],
         "Stickers": False
     }
 
 
-    def __init__(self, files, mode="from yaml", verbose=True):
-        """ mode can be from yaml (saved metadata) or from html (using HTMLExtractor,
-        with default values) """
+    def __init__(self, files:List[str], mode:str="from yaml", verbose:bool=True):
+        """ mode can be from yaml (saved metadata), from html (using HTMLExtractor,
+        with default values) or from scratch (default values only) """
         VerboseObject.__init__(self, verbose)
         UserDict.__init__(self, **ProjectMetadata.default_values)
         self._verbose = verbose
         self._save_as = files.metadata
-        assert mode in ["from html", "from yaml"], \
-            "ProjectMetadata mode must be 'from html' or 'from yaml'."
+        assert mode in ["from html", "from yaml", "from scratch"], \
+            "ProjectMetadata mode must be 'from html', 'from yaml' or 'from scratch'."
 
         if mode == "from html":
             # Extract metadata from fic html files
@@ -82,6 +107,11 @@ class ProjectMetadata(UserDict, VerboseObject):
             # Load from saved file
             with open(self._save_as, 'r') as file:
                 self.data.update(yaml.safe_load(file))
+
+        if mode == "from scratch":
+            # Use placeholders
+            self._save()
+
 
     def _save(self):
         """ Saves the to the yaml file """
@@ -167,7 +197,7 @@ class ProjectMetadata(UserDict, VerboseObject):
         at_least_one_categories = ["Summary", "Rating", "Parent Work URL",
             "IA Link", "IA Streaming Links", "GDrive Link", "Audio Length", "Archive Warnings",
             "Fandoms"]
-        not_default_categories = ["Audio Length", "Media Category", "IA Link", "IA Cover Link",
+        not_default_categories = ["Audio Length", "Media Category", "IA Link",
             "GDrive Link", "IA Streaming Links", "Credits", "Add co-creators?"]
         if posted:
             not_default_categories.extend(["Podfic Link", "Posting Date"])

@@ -30,12 +30,17 @@ if __name__ == "__main__":
 
     if args.mode == "new":
         # Downloading parent work html
-        link = args.link if args.link else input("Link to parent work(s): ")
-        HTMLDownloader(verbose=verbose).download_html(link, files.folder)
-        files.update_file_paths()
+        link = args.link if args.link else input("Link to parent work(s), input nothing to skip: ")
 
-        # Extracting info from html
-        metadata = ProjectMetadata(files, mode="from html", verbose=verbose)
+        if link:
+            HTMLDownloader(verbose=verbose).download_html(link, files.folder)
+            files.update_file_paths()
+
+            # Extracting info from html
+            metadata = ProjectMetadata(files, mode="from html", verbose=verbose)
+
+        else:
+            metadata = ProjectMetadata(files, mode="from scratch", verbose=verbose)
 
     if args.mode == "post":
         metadata = ProjectMetadata(files, mode="from yaml", verbose=verbose)
@@ -53,8 +58,8 @@ if __name__ == "__main__":
 
         # Uploading to gdrive
         gdrive_uploader = GDriveUploader(project_id, files, metadata, verbose)
-        gdrive_uploader.upload_audio()
-        gdrive_uploader.upload_cover()
+        # gdrive_uploader.upload_audio()
+        # gdrive_uploader.upload_cover()
 
         # Uploading to the internet archive
         ia_uploader = IAUploader(project_id, files, metadata, verbose)

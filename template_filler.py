@@ -86,7 +86,7 @@ class Template(VerboseObject):
     @staticmethod
     def remove_placeholder_links(links:List[Tuple[str,str]]) -> List[Tuple[str,str]]:
         """ Removes the placeholder links """
-        return [(link, name) for link, name in links if self.not_placeholder_link(link, name)]
+        return [(link, name) for link, name in links if Template.not_placeholder_link(link, name)]
 
 ### DW
 
@@ -168,8 +168,8 @@ class Ao3Template(Template):
             summary += f'\n\n{self._info["Audio Length"]}'
             links = self.remove_placeholder_links(self._info["Writer"])
             if links:
-            summary += ' :: '
-            summary += i18l("Written by")+" "+self.get_enum_links(self._info["Writer"])+'.'
+                summary += ' :: '
+                summary += i18l("Written by")+" "+self.get_enum_links(self._info["Writer"])+'.'
         return summary
 
     def _get_section(self, title:str, subsections:List[str]) -> str:
