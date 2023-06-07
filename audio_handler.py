@@ -13,10 +13,9 @@ from base_object import VerboseObject
 
 def get_padded_track_number_string(track_number, total_tracks):
     """ Padds track number with 0 to fit the number of digits accross all tracks """
-    n_track_numerals = int(total_tracks ** 0.1)
     track_string = str(track_number)
-    track_string = "".join(['0' for i in range(len(track_string) - n_track_numerals)]) \
-        + track_string
+    while len(track_string) < len(str(total_tracks)):
+        track_string = '0'+track_string
     return track_string
 
 

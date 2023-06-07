@@ -85,7 +85,7 @@ class FileTracker(VerboseObject):
                 for file in listdir(folder)
                 if contains.lower() in file.lower() and file.endswith(endswith)
             ]
-            return files
+            return sorted(files)
 
         self.audio.compressed.unformatted = get_files(self._project_id.title_abr, ".mp3")
         self.audio.raw.unformatted = get_files(self._project_id.title_abr, ".wav")
