@@ -58,8 +58,8 @@ if __name__ == "__main__":
 
         # Uploading to gdrive
         gdrive_uploader = GDriveUploader(project_id, files, metadata, verbose)
-        # gdrive_uploader.upload_audio()
-        # gdrive_uploader.upload_cover()
+        gdrive_uploader.upload_audio()
+        gdrive_uploader.upload_cover()
 
         # Uploading to the internet archive
         ia_uploader = IAUploader(project_id, files, metadata, verbose)
