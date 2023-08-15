@@ -216,8 +216,7 @@ class FandomTaxonomyCSV(FandomTaxonomy):
 
     CSV implementation. Every item can be the blob of a comma-separated string list.
     NOTE shouldn't work that way for abbreviations, and can there be commas in canonical tags?
-
-    TODO needs some debug"""
+    """
 
     csv_path = join(dirname(__file__), "fandom_taxonomy.csv")
     columns = [

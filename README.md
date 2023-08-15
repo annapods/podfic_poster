@@ -21,7 +21,9 @@ Cf INSTALLME.md, USAGE.md, TRANSLATEME.md, and the github issues.
 [x] upload to ao3
     [-] archive lock
     [-] pairing categories
-    [-] no tag shuffling
+    [-] wordcount
+    [-] inspired by link
+    [-] post draft
 [x] save dw text post
     [-] post by email
 [x] fandom taxonomy

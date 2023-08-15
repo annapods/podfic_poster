@@ -5,7 +5,9 @@ No argparse/main
 NOTE had to add the re.DOTALL flag in _get_summaries, might have to everywhere else, too
  """
 
-import regex as re
+from re import search as re_search
+from re import findall as re_findall
+from re import DOTALL
 from base_object import VerboseObject
 
 
@@ -58,7 +60,7 @@ class HTMLExtractor(VerboseObject):
         regex = r"""<dt>Series:<\/dt>
         <dd>Part [0-9]+ of
 <a href="http:\/\/archiveofourown.org\/series\/[0-9]*">(.*?)<\/a><\/dd>"""
-        series = [re.findall(regex, work) for work in self._html_works]
+        series = [re_findall(regex, work) for work in self._html_works]
         series = remove_dup(flatten(series))
         return series
 
@@ -67,10 +69,10 @@ class HTMLExtractor(VerboseObject):
         """ Extracts and returns authors (url, pseud) """
         # Get author credits section
         regex = r"""<div class="byline">by (.*?)</div>"""
-        blobs = [re.findall(regex, work)[0] for work in self._html_works]
+        blobs = [re_search(regex, work).group() for work in self._html_works]
         # Extract all (link, pseud) pairs from credit section
         regex = r"""<a rel="author" href="(.*?)">(.*?)<\/a>"""
-        authors = [re.findall(regex, blob) for blob in blobs]
+        authors = [re_findall(regex, blob) for blob in blobs]
         authors = remove_dup(flatten(authors))
         return authors
 
@@ -78,33 +80,20 @@ class HTMLExtractor(VerboseObject):
     def _get_titles(self):
         """ Extracts and returns fic titles """
         regex = r"<h1>(.*?)<\/h1>"
-        titles = [re.search(regex, work).group()[4:-5] for work in self._html_works]
+        titles = [re_search(regex, work).group()[4:-5] for work in self._html_works]
         return titles
 
 
     def _get_wordcount(self):
         """ Extracts, sums up and returns total wordcount """
-        # Regex for one-chapter works
-        regex1 = r"""(?<=<dt>Stats:<\/dt>
-      <dd>
-        Published: [0-9-]+
-        Words: )[0-9]+(?=
-      <\/dd>)"""
-        # Regex for multi-chapter works
-        regex2 = r"""(?<=<dt>Stats:<\/dt>
-      <dd>
-        Published: [0-9-]+
-          Completed: [0-9-]+
-        Words: )[0-9]+(?=
-      <\/dd>)"""
+        regex = """<dt>Stats:<\/dt>[\s\n]+<dd>[\s\n]+Published: [0-9-]+""" + \
+            """([\s\n]+Completed: [0-9-]+)?""" + \
+            """[\s\n]+Words: ((?P<thousands>[0-9]+),|)(?P<units>[0-9]+)"""
         wordcounts = []
-        print("debug 1", wordcounts)
-        for regex in [regex1, regex2]:
-            for work in self._html_works:
-                found = re.findall(regex, work)
-                if found:
-                    wordcounts.append(int(found[0]))
-                print("debug 2", found)
+        for work in self._html_works:
+            found = re_search(regex, work)
+            if not found is None:
+                wordcounts.append(int(found.group("thousands")+found.group("units")))
         return sum(wordcounts)
 
 
@@ -112,7 +101,7 @@ class HTMLExtractor(VerboseObject):
         """ Extracts and returns summaries """
         regex = r"""<p>Summary<\/p>
       <blockquote class="userstuff">(<p>|)([\s\S]*?)<\/p><\/blockquote>"""
-        summaries = [re.findall(regex, work, re.DOTALL)[0][1] for work in self._html_works]
+        summaries = [re_findall(regex, work, DOTALL)[0][1] for work in self._html_works]
         return summaries
 
 
@@ -120,9 +109,9 @@ class HTMLExtractor(VerboseObject):
         """ Extracts and returns tags for the given category """
         regex = fr"""<dt>{category}:<\/dt>
           <dd>(.*?)<\/dd>"""
-        tag_soups = [soup for work in self._html_works for soup in re.findall(regex, work)]
+        tag_soups = [soup for work in self._html_works for soup in re_findall(regex, work)]
         regex = r"""<a href="http:\/\/archiveofourown.org\/tags\/(.*?)">(.*?)<\/a>"""
-        tags = [tag for soup in tag_soups for end_url, tag in re.findall(regex, soup)]
+        tags = [tag for soup in tag_soups for end_url, tag in re_findall(regex, soup)]
         tags = remove_dup(tags)
         return tags
 
@@ -131,7 +120,7 @@ class HTMLExtractor(VerboseObject):
         """ Extracts and returns work urls """
         regex = r"""Posted originally on the <a href="http:\/\/archiveofourown.org\/">""" \
             + r"""Archive of Our Own<\/a> at <a href="(.*?)">"""
-        urls = [re.findall(regex, work) for work in self._html_works]
+        urls = [re_findall(regex, work) for work in self._html_works]
         return  flatten(urls)
     
 
@@ -139,7 +128,7 @@ class HTMLExtractor(VerboseObject):
         """ Extracts and returns work language """
         regex = fr"""<dt>Language:</dt>
         <dd>(.*?)</dd>"""
-        languages = [re.findall(regex, work)[0] for work in self._html_works]
+        languages = [re_findall(regex, work)[0] for work in self._html_works]
         languages = remove_dup(languages)
         if len(languages) > 1:
             self._vprint("Found several languages in parent works:", ", ".join(languages))
