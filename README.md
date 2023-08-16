@@ -19,18 +19,11 @@ Cf INSTALLME.md, USAGE.md, TRANSLATEME.md, and the github issues.
 - [x] upload to gdrive
 - [x] upload to ia
 - [x] upload to ao3
-    - [-] archive lock
-    - [-] pairing categories
-    - [-] wordcount
-    - [-] inspired by link
-    - [-] post draft
+    - TODO post draft
 - [x] save dw text post
-    - [-] post by email
+    - TODO post by email
 - [x] fandom taxonomy
 - [-] fill tracker
-    - [-] add tracker tag to work info somehow
-    - [?] tracker in sqlite
+    - TODO add tracker tag to work info somehow, tracker in sqlite?
 - [-] handle files after posting
-    - [-] delete unnecessary files (ask first)
-    - [-] rename folder with posting date
-    - [-] move to posted/to crosspost
+    - TODO delete unnecessary files (ask first), rename folder with posting date, move to posted/to crosspost
