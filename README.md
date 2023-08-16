@@ -12,14 +12,14 @@ Cf INSTALLME.md, USAGE.md, TRANSLATEME.md, and the github issues.
 
 ## Current process and automation levels
 
-[x] download html
-[x] extract data
-[x] fill templates
-[x] edit audio metadata
-[x] upload to gdrive
-[x] upload to ia
-[x] upload to ao3
-    [-] archive lock
+- [x] download html
+- [x] extract data
+- [x] fill templates
+- [x] edit audio metadata
+- [x] upload to gdrive
+- [x] upload to ia
+- [x] upload to ao3
+-     [-] archive lock
     [-] pairing categories
     [-] wordcount
     [-] inspired by link
