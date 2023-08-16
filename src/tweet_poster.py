@@ -41,6 +41,7 @@ class TweetPoster(VerboseObject):
             self._skip_promo = True
             return
         else:
+            self._skip_promo = False
             self._get_secrets()
             self._get_sessions()
             self._template = TwitterTemplate(metadata, verbose)
