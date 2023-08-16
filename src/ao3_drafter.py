@@ -80,8 +80,8 @@ class Ao3Poster(VerboseObject):
         with open("settings.json", "r") as file:
             settings = js_load(file)
             # If they are not, the first attempt at loging in will fail and the program will ask in cli
-            username = settings.get("username", "")
-            password = settings.get("password", "")
+            username = settings.get("ao3_username", "")
+            password = settings.get("ao3_password", "")
 
         session = Session()
         # AO3 blocks python-requests by default so we need to fake a different user agent
@@ -108,8 +108,8 @@ class Ao3Poster(VerboseObject):
         # Check for one cause of failure: wrong credentials
         if "The password or user name you entered doesn't match our records." in response.text:
             # Use the CLI interface to ask the user for input
-            settings["username"] = input("ao3 username? ")
-            settings["password"] = input("ao3 password? ")
+            settings["ao3_username"] = input("ao3 username? ")
+            settings["ao3_password"] = input("ao3 password? ")
             # Save the credentials and try again
             with open("settings.json", 'w') as file: js_dump(settings, file)
             session = self._get_session()
@@ -181,7 +181,7 @@ class Ao3Poster(VerboseObject):
         # Add Ao3 template html
         template = Ao3Template(self._metadata)
         metadata.update_md("Summary", template.summary)
-        metadata.update_md("Work text", template.work_text)
+        metadata.update_md("Work Text", template.work_text)
 
         # Format info into a list of tuples using the expected keys
         post_data = []
@@ -192,7 +192,7 @@ class Ao3Poster(VerboseObject):
             ('Summary', 'work[summary]'),
             ('Notes at the beginning', 'work[notes]'),
             ('Notes at the end', 'work[endnotes]'),
-            ('Work text', 'work[chapter_attributes][content]'),]:
+            ('Work Text', 'work[chapter_attributes][content]'),]:
             post_data.append((post_key, metadata[md_key]))
 
         # Lists to str

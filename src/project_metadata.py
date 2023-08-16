@@ -40,8 +40,9 @@ class ProjectMetadata(UserDict, VerboseObject):
 
     default_values = {
         # filled automatically
+        "Work Title": "",
         "Language": "English",
-        "Work text": "__WORK_TEXT",
+        "Work Text": "__WORK_TEXT",
         "Podfic Link": "__PODFIC_LINK",
         "Posting Date": "__POSTING_DATE",
         "Creator/Pseud(s)": [("ao3.org/users/Annapods", "Annapods")],

@@ -11,6 +11,7 @@ from src.html_downloader import HTMLDownloader
 from src.ia_uploader import IAUploader
 from src.project_files_tracker import FileTracker
 from src.project_metadata import ProjectMetadata
+from src.tweet_poster import TweetPoster
 
 
 if __name__ == "__main__":
@@ -38,9 +39,9 @@ if __name__ == "__main__":
 
             # Extracting info from html
             metadata = ProjectMetadata(files, mode="from html", verbose=verbose)
-
         else:
             metadata = ProjectMetadata(files, mode="from scratch", verbose=verbose)
+        metadata.update_md("Work Title", project_id.raw_title)
 
     if args.mode == "post":
         metadata = ProjectMetadata(files, mode="from yaml", verbose=verbose)
@@ -78,6 +79,10 @@ if __name__ == "__main__":
         # Posting to dw
         dw_poster = DWPoster(project_id, files, metadata, verbose)
         dw_poster.save_dw_post_text()
+
+        # Promoting on twitter
+        tweet_poster = TweetPoster(project_id, files, metadata, verbose)
+        tweet_poster.tweet_promo()
 
         # # Saving tracker info
         # ??.save_tracker_info()

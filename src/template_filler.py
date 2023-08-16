@@ -108,8 +108,7 @@ class DWTemplate(Template):
             + "</div>"
 
         infos = [
-                heading_if_links("Parent works",
-                    zip(self._info["Parent Work URL"], self._info["Parent Work Title"])),
+                heading_if_links("Parent Works", self._info["Parent Works"]),
                 heading_if_links(i18l("Writers"), self._info["Writers"]),
                 heading_if_links(i18l("Readers"), self._info["Creator/Pseud(s)"]),
                 heading(i18l("Context")) + self._info["Occasion"],
@@ -341,3 +340,21 @@ class Ao3Template(Template):
         parts = [part for part in parts if parts]
         # return "\n\n<p>&nbsp;</p>\n\n".join(parts)
         return "\n\n\n".join(parts)
+
+
+class TwitterTemplate(Template):
+    """ Filling the twitter promo template """
+    def __init__(self, metadata, verbose:bool=True):
+        super().__init__(metadata["Language"], verbose)
+        self._info = metadata
+        self._get_tweet_text()
+    
+    def _get_tweet_text(self) -> None:
+        self.tweet = i18l('NEW ')+self._info["Work Type"].upper()
+        self.tweet += "\n- "+i18l("Title")+i18l(":")+" "+self._info["Work Title"]
+        self.tweet += "\n- "+i18l("Fandom")+i18l(":")+" "+Template.get_enum(self._info["Fandoms"])
+        self.tweet += "\n- "+i18l("Length")+i18l(":")+" "+self._info["Audio Length"]
+        self.tweet += "\n- "+i18l("Rating")+i18l(":")+" "+self._info["Rating"]
+        ao3_id = self._info["Podfic Link"].split("/")[-2]
+        self.tweet += "\nao3.org/works/"+ao3_id
+
