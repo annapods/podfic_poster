@@ -23,7 +23,7 @@ Cf INSTALLME.md, USAGE.md, TRANSLATEME.md, and the github issues.
 - [x] save dw text post
     - TODO post by email
 - [x] fandom taxonomy
-- [-] fill tracker
+- [ ] fill tracker
     - TODO add tracker tag to work info somehow, tracker in sqlite?
-- [-] handle files after posting
+- [ ] handle files after posting
     - TODO delete unnecessary files (ask first), rename folder with posting date, move to posted/to crosspost
