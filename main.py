@@ -2,15 +2,15 @@
 """ Command line program """
 
 from argparse import ArgumentParser
-from project_id import ProjectID
-from ao3_drafter import Ao3Poster
-from audio_handler import AudioHandler
-from dw_poster import DWPoster
-from gdrive_uploader import GDriveUploader
-from html_downloader import HTMLDownloader
-from ia_uploader import IAUploader
-from project_files_tracker import FileTracker
-from project_metadata import ProjectMetadata
+from src.project_id import ProjectID
+from src.ao3_drafter import Ao3Poster
+from src.audio_handler import AudioHandler
+from src.dw_poster import DWPoster
+from src.gdrive_uploader import GDriveUploader
+from src.html_downloader import HTMLDownloader
+from src.ia_uploader import IAUploader
+from src.project_files_tracker import FileTracker
+from src.project_metadata import ProjectMetadata
 
 
 if __name__ == "__main__":

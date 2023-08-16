@@ -5,10 +5,8 @@ No argparse/main
 NOTE had to add the re.DOTALL flag in _get_summaries, might have to everywhere else, too
  """
 
-from re import search as re_search
-from re import findall as re_findall
-from re import DOTALL
-from base_object import VerboseObject
+from re import search as re_search, findall as re_findall, DOTALL
+from src.base_object import VerboseObject
 
 
 def flatten(list_of_lists):
@@ -139,7 +137,7 @@ class HTMLExtractor(VerboseObject):
         """ Extracts and returns all info """
         self._vprint('Extracting data from parent work(s) html file(s)...', end=" ")
         to_return = {
-            'Parent Works': zip(self._get_urls(), self._get_titles()),
+            'Parent Works': list(map(list, zip(self._get_urls(), self._get_titles()))),
             "Writers": self._get_authors(),
             # "Series": self._get_series(),
             "Summary": self._get_summaries(),

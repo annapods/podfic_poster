@@ -5,7 +5,7 @@
 from os.path import join, exists
 from os import mkdir, listdir
 import sys
-from base_object import VerboseObject
+from src.base_object import VerboseObject
 
 
 class CompressedFileTracker:

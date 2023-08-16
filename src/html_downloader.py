@@ -7,7 +7,7 @@ import requests
 from ao3downloader.actions import globals as ao3dl_globals
 from ao3downloader import ao3, fileio
 from ao3downloader.strings import DOWNLOAD_FOLDER_NAME
-from base_object import VerboseObject
+from src.base_object import VerboseObject
 
 
 class HTMLDownloader(VerboseObject):

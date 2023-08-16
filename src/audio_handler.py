@@ -8,7 +8,7 @@ from os import rename
 from taglib import File as taglib_File
 from mutagen.mp3 import MP3
 from mutagen.id3 import APIC
-from base_object import VerboseObject
+from src.base_object import VerboseObject
 
 
 def get_padded_track_number_string(track_number, total_tracks):

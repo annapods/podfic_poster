@@ -9,8 +9,8 @@ TODO tracker
 
 from typing import List, Tuple
 from gettext import translation
-from base_object import VerboseObject
-from project_metadata import remove_placeholder_links, not_placeholder_link
+from src.base_object import VerboseObject
+from src.project_metadata import remove_placeholder_links, not_placeholder_link
 
 
 # Language set in __init__ to this global variable

@@ -8,7 +8,7 @@ https://stackoverflow.com/questions/70993735/pydrive-generating-a-sharable-link-
 from os.path import basename
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
-from base_object import VerboseObject
+from src.base_object import VerboseObject
 
 
 class GDriveUploader(VerboseObject):

@@ -3,13 +3,13 @@
 """ Copied/adapted from https://ao3-poster.readthedocs.io/en/latest/index.html """
 
 from json import load as js_load, dump as js_dump
-from template_filler import Ao3Template
-from base_object import VerboseObject
 from re import compile as re_compile
 from bs4 import SoupStrainer, BeautifulSoup
 from requests import Session
 from typing import Optional, List, Tuple, Dict
-from project_metadata import not_placeholder_link
+from src.template_filler import Ao3Template
+from src.base_object import VerboseObject
+from src.project_metadata import not_placeholder_link
 
 
 AO3_URL = 'https://archiveofourown.org/'

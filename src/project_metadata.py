@@ -8,11 +8,11 @@ and templates
 from collections import UserDict
 from datetime import date
 import yaml
-from html_extractor import HTMLExtractor
-from fandom_taxonomy import FandomTaxonomyCSV as FandomTaxonomy
-# from fandom_taxonomy import FandomTaxonomySQLite as FandomTaxonomy
-from base_object import VerboseObject
 from typing import List, Tuple
+from src.html_extractor import HTMLExtractor
+from src.fandom_taxonomy import FandomTaxonomyCSV as FandomTaxonomy
+# from src.fandom_taxonomy import FandomTaxonomySQLite as FandomTaxonomy
+from src.base_object import VerboseObject
 
 
 def not_placeholder_link(link:str, text:str) -> bool:
@@ -36,7 +36,7 @@ class ProjectMetadata(UserDict, VerboseObject):
     - TODO create templates stuff
     """
 
-    mass_xpost_file = "../../../Music/2.3 to post/dw.txt"
+    mass_xpost_file = "../../Music/2.3 to post/dw.txt"
 
     default_values = {
         # filled automatically
@@ -124,7 +124,7 @@ class ProjectMetadata(UserDict, VerboseObject):
     def _save(self):
         """ Saves the to the yaml file """
         with open(self._save_as, 'w') as file:
-            yaml.safe_dump(self.data, file)
+            yaml.safe_dump(dict(self.data), file)
 
     def update_md(self, category, content):
         """ Updates one of the fields and saves the to the file

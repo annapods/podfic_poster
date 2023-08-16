@@ -8,10 +8,10 @@ TODO May 2022 google won't allow less secure apps anymore soooo
 https://www.thepythoncode.com/article/use-gmail-api-in-python"""
 
 
-from project_files_tracker import FileTracker
-from template_filler import DWTemplate
-from base_object import VerboseObject
 from os.path import exists
+from src.project_files_tracker import FileTracker
+from src.template_filler import DWTemplate
+from src.base_object import VerboseObject
 
 
 class DWPoster(VerboseObject):

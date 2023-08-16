@@ -3,9 +3,9 @@
 
 import re
 from os.path import exists, basename
-import sys
+from sys import exit
 from internetarchive import upload, get_item
-from base_object import VerboseObject
+from src.base_object import VerboseObject
 
 
 class IAUploader(VerboseObject):
@@ -92,7 +92,7 @@ class IAUploader(VerboseObject):
             print("- input a new one (input it now)")
             new = input("Your choice? ")
             if new == "":
-                sys.exit()
+                exit()
             else:
                 identifier = new
 
@@ -134,7 +134,7 @@ class IAUploader(VerboseObject):
                 choice = input("Your choice? ")
                 if choice == "quit":
                     print("Bye!")
-                    sys.exit()
+                    exit()
                 elif choice != "":
                     if exists(choice):
                         self._upload_file(choice)
