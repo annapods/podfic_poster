@@ -7,9 +7,6 @@ https://www.codespeedy.com/email-automation-in-python/
 TODO May 2022 google won't allow less secure apps anymore soooo
 https://www.thepythoncode.com/article/use-gmail-api-in-python"""
 
-# import json
-# import smtplib
-# from email.message import EmailMessage
 
 from project_files_tracker import FileTracker
 from template_filler import DWTemplate

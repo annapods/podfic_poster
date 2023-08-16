@@ -51,7 +51,7 @@ class AudioHandler(VerboseObject):
             self._metadata["Creator/Pseud(s)"] \
             + self._metadata["Add co-creators?"])
 
-        writers = get_enum(self._metadata["Writer"])
+        writers = get_enum(self._metadata["Writers"])
         if writers:
             artists += f" (w:{writers})"
 

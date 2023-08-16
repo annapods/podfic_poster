@@ -139,9 +139,8 @@ class HTMLExtractor(VerboseObject):
         """ Extracts and returns all info """
         self._vprint('Extracting data from parent work(s) html file(s)...', end=" ")
         to_return = {
-            "Parent Work URL": self._get_urls(),
-            "Parent Work Title": self._get_titles(),
-            "Writer": self._get_authors(),
+            'Parent Works': zip(self._get_urls(), self._get_titles()),
+            "Writers": self._get_authors(),
             # "Series": self._get_series(),
             "Summary": self._get_summaries(),
             "Wordcount": self._get_wordcount(),

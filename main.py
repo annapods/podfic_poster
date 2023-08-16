@@ -79,5 +79,5 @@ if __name__ == "__main__":
         dw_poster = DWPoster(project_id, files, metadata, verbose)
         dw_poster.save_dw_post_text()
 
-        # Saving tracker info
+        # # Saving tracker info
         # ??.save_tracker_info()

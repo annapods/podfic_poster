@@ -53,12 +53,12 @@ class IAUploader(VerboseObject):
             print("You can:")
             print("- Add to, or update, all files to the existing item (hit return)")
             print("- Choose a new identifier (input the chosen identifier)")
-            print("- Skip the audio files but still add or update the other, lighter, files (input skip)")
+            print("- Skip the audio files but still add or update the other, lighter, files (input ->)")
 
             new = input("Your choice? ")
             if new == "":
                 self._identifier = identifier
-            elif new == "skip":
+            elif new == "->":
                 self._skip_audio = True
                 self._identifier = identifier
             else:

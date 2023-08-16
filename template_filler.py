@@ -10,6 +10,7 @@ TODO tracker
 from typing import List, Tuple
 from gettext import translation
 from base_object import VerboseObject
+from project_metadata import remove_placeholder_links, not_placeholder_link
 
 
 # Language set in __init__ to this global variable
@@ -78,16 +79,6 @@ class Template(VerboseObject):
             "ul", "".join([f'''<li>{item}</li>''' for item in items]))
         return ""
 
-    @staticmethod
-    def not_placeholder_link(link:str, text:str) -> bool:
-        """ Detects actual links, as opposed to placeholders """
-        return not (link.startswith("__") or text.startswith("__"))
-
-    @staticmethod
-    def remove_placeholder_links(links:List[Tuple[str,str]]) -> List[Tuple[str,str]]:
-        """ Removes the placeholder links """
-        return [(link, name) for link, name in links if Template.not_placeholder_link(link, name)]
-
 ### DW
 
 class DWTemplate(Template):
@@ -107,7 +98,7 @@ class DWTemplate(Template):
         
         def heading_if_links(head:str, links:List[Tuple[str,str]], ending:str="") -> str:
             """ Creates the header + content string if the link isn't a placeholder """
-            links = self.remove_placeholder_links(links)
+            links = remove_placeholder_links(links)
             if links:
                 return heading(head) + self.get_enum_links(links) + ending
 
@@ -119,7 +110,7 @@ class DWTemplate(Template):
         infos = [
                 heading_if_links("Parent works",
                     zip(self._info["Parent Work URL"], self._info["Parent Work Title"])),
-                heading_if_links(i18l("Writers"), self._info["Writer"]),
+                heading_if_links(i18l("Writers"), self._info["Writers"]),
                 heading_if_links(i18l("Readers"), self._info["Creator/Pseud(s)"]),
                 heading(i18l("Context")) + self._info["Occasion"],
                 heading(i18l("Fandoms")) + ', '.join(self._info['Fandoms']),
@@ -166,10 +157,10 @@ class Ao3Template(Template):
         # This is (clumsily) done using the audio length
         if self._info["Audio Length"] not in summary:
             summary += f'\n\n{self._info["Audio Length"]}'
-            links = self.remove_placeholder_links(self._info["Writer"])
+            links = remove_placeholder_links(self._info["Writers"])
             if links:
                 summary += ' :: '
-                summary += i18l("Written by")+" "+self.get_enum_links(self._info["Writer"])+'.'
+                summary += i18l("Written by")+" "+self.get_enum_links(self._info["Writers"])+'.'
         return summary
 
     def _get_section(self, title:str, subsections:List[str]) -> str:
@@ -237,13 +228,13 @@ class Ao3Template(Template):
 
     def _get_thanks(self) -> str:
         """ Thanks section """
-        if not self._info["Writer"]:
+        if not self._info["Writers"]:
             return ""
         reason = i18l("for giving blanket permission to podfics!") if self._info["BP"] \
             else i18l("for letting me record this work!")
         content = " ".join([
             i18l("Thanks to"),
-            self.get_enum_links(self._info["Writer"]),
+            self.get_enum_links(self._info["Writers"]),
             reason])
         return self._get_sub_section(i18l("Thanks"), content)
 
@@ -257,7 +248,7 @@ class Ao3Template(Template):
             ])
         if credit:
             credit = [self.get_a_href(link, name) for link, name in credit \
-                if self.not_placeholder_link(link, name)]
+                if not_placeholder_link(link, name)]
         content = self.get_li(credit)
         return self._get_sub_section(i18l("Additional credits"), content)
 
@@ -333,7 +324,7 @@ class Ao3Template(Template):
         """ Cover art """
         content = f'''<p align="center">{self.get_img(self._info["IA Cover Link"], width=250,
             img_alt_text=i18l("Cover art."), no_img_alt_text=i18l("Cover art welcome."))}'''
-        if self.not_placeholder_link(self._info["Cover Artist(s)"]):
+        if not_placeholder_link(*(self._info["Cover Artist(s)"][0])):
             content += f'''<br>\n{i18l("Cover art by")} ''' \
                 + self.get_enum_links(self._info["Cover Artist(s)"])
         content += "</p>"

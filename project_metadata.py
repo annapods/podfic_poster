@@ -12,7 +12,16 @@ from html_extractor import HTMLExtractor
 from fandom_taxonomy import FandomTaxonomyCSV as FandomTaxonomy
 # from fandom_taxonomy import FandomTaxonomySQLite as FandomTaxonomy
 from base_object import VerboseObject
-from typing import List
+from typing import List, Tuple
+
+
+def not_placeholder_link(link:str, text:str) -> bool:
+    """ Detects actual links, as opposed to placeholders """
+    return not (link.startswith("__") or text.startswith("__"))
+
+def remove_placeholder_links(links:List[Tuple[str,str]]) -> List[Tuple[str,str]]:
+    """ Removes the placeholder links """
+    return [(link, name) for link, name in links if not_placeholder_link(link, name)]
 
 
 class ProjectMetadata(UserDict, VerboseObject):
@@ -44,9 +53,8 @@ class ProjectMetadata(UserDict, VerboseObject):
         "Media Category": "__MEDIA_CATEGORY",
 
         # filled automatically from the parent work html
-        "Parent Work URL": ["__URL"],
-        "Parent Work Title": ["__TITLE"],
-        "Writer": [("__URL", "__WRITER")],
+        "Parent Works": [("__URL", "__TITLE")],
+        "Writers": [("__URL", "__WRITER")],
         # "Series": self._get_series(),
         "Summary": ["__SUMMARY"],
         "Wordcount": "__WORDCOUNT",
@@ -194,11 +202,10 @@ class ProjectMetadata(UserDict, VerboseObject):
         """ Double checks everything is ready to fill the templates """
         at_most_one_categories = ["Summary", "Rating", "IA Link", "GDrive Link",
             "Summary", "Audio Length"]
-        at_least_one_categories = ["Summary", "Rating", "Parent Work URL",
-            "IA Link", "IA Streaming Links", "GDrive Link", "Audio Length", "Archive Warnings",
-            "Fandoms"]
+        at_least_one_categories = ["Summary", "Rating", "IA Link", "IA Streaming Links", "GDrive Link",
+            "Audio Length", "Archive Warnings", "Fandoms"]
         not_default_categories = ["Audio Length", "Media Category", "IA Link",
-            "GDrive Link", "IA Streaming Links", "Credits", "Add co-creators?"]
+            "GDrive Link", "IA Streaming Links"]
         if posted:
             not_default_categories.extend(["Podfic Link", "Posting Date"])
 
@@ -240,7 +247,7 @@ class ProjectMetadata(UserDict, VerboseObject):
                 "Underage"
         ], "/!\\ check Archive Warnings"
 
-        # for category in self["Categories"]:
-        #     assert category in [
-        #         "F/F", "F/M", "Gen", "M/M", "Multi", "Other"
-        #     ], "/!\\ check Categories"
+        for category in self["Categories"]:
+            assert category in [
+                "F/F", "F/M", "Gen", "M/M", "Multi", "Other"
+            ], "/!\\ check Categories"
