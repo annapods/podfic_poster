@@ -1,6 +1,16 @@
 
 # Usage
 
+This is how to use the command line interface (CLI).
+
+## 0 Activating the virtual environment
+
+Linux:
+
+```bash
+source .venv/bin/activate
+```
+
 ## 1 Getting a project ready for posting
  
 In order to use this helper, you need to follow a few naming conventions.
@@ -22,10 +32,15 @@ Cover art files are optional. There can be one or several mp3 files, and one or 
 
 ## 2 Creating the info file
 
-Here is what the program will do:
+Here is what the program will do, for an unknown project:
 - Download the parent work(s)
 - Extract metadata from the html
 - Create the yaml file with that metadata and some placeholders
+- Save the project info in the tracker file
+
+If the project is already in the tracker, you can choose to:
+- Redownload the parent work(s) and overwrite the metadata saved
+- Load the data from the tracker
 
 And here's how to do it:
 
@@ -36,18 +51,16 @@ In a terminal, navigate to the root directory of the program and type:
 Linux/Mac:
 
 ```shell
-source .venv/bin/activate
-python main.py new
+python cli/setup.py
 ```
 
 Windows:
 
 ```shell
-.venv\Scripts\activate
-python main.py new
+python cli/setup.py
 ```
 
-The program will ask for fandom abbreviation and Full project title. Stick to the spelling, case, etc used in the final mp3 files. For ex, `[DCU] Wayne Enterprises.mp3` will correspond to `DCU` and `Wayne Enterprises`. 
+The program will ask for fandom abbreviation and full project title. Stick to the spelling, case, etc used in the final mp3 files. For ex, `[DCU] Wayne Enterprises.mp3` will correspond to `DCU` and `Wayne Enterprises`. 
 
 ```
 Fandom abr: DCU
@@ -65,6 +78,8 @@ You can:
 Your choice?
 ```
 
+If the project is already in the tracker file, you can use the project ID instead of fandom and title.
+
 ### Parent work download
 
 It will then ask for the link to the work in order to download it and extract some metadata. The metadata will be saved in a yaml file and will need to be edited before posting.
@@ -77,17 +92,19 @@ Done!
 Extracting data from parent work(s) html file(s)... Done!
 ```
 
+If you want to skip this step and use already-extracted data, do not input a link.
+
 ### Shortcut
 
-You can give these informations directly in the initial command line:
+You can give these informations directly in the initial command line, for ex:
 
 ```shell
-python main.py new --title="Wayne Enterprise" --fandom=DCU --link="https://archiveofourown.org/works/31056044"
+python cli/setup.py --title="Wayne Enterprise" --fandom=DCU --link="https://archiveofourown.org/works/31056044"
 ```
 
 ### Fandom taxonomy
 
-After that, the program asks for some fandom taxonomy stuff. For reference:
+After that, if extracting metadata, the program asks for some fandom taxonomy stuff. For reference:
 - Preferred tags are the tags you want on the ao3 work.
 - Main tracking tag is the name of the fandom in the tracker spreadsheet*.
 - The abbreviation is used in the name and metadata of the audio files, and is the same as asked previously.
@@ -153,8 +170,6 @@ You then need to edit the yaml file with any missing info. It also wouldn't hurt
 
 Note that a lot of info will not be filled out yet! For example, the podfic tags and the work text get added automatically in the next step.
 
-Note that the order of the original ao3 tags might get shuffled.
-
 ## 4 Uploading and drafting
 
 The goals here are to:
@@ -164,14 +179,13 @@ The goals here are to:
 
 ### Project identity
 
-Terminal, blah blah, the same line changes if you're on Windows.
+Terminal, blah blah, don't forget to activate the virtual environment if this is a new session.
 
 ```shell
-source .venv/bin/activate
-python main.py post
+python cli/post.py
 ```
 
-This part will also ask for fandom abbreviation and project title and double check with you which folder the project is in.
+This part will also ask for project ID or fandom abbreviation and project title and double check with you which folder the project is in.
 
 ```
 Fandom abr: DCU
@@ -219,7 +233,7 @@ Uploading podfic info to gdrive...
 Done!
 ```
 
-Uploading to the internet archive doesn't require any action from you, but if an item with the same name already exists (because you tried to upload the podfic but stopped halfway through, or if another project has the same abbreviated identificator), the program will pause and check with you before going forward.
+Uploading to the internet archive doesn't require any action from you, but if an item with the same name already exists (because you tried to upload the podfic but stopped halfway through, or if another project has the same abbreviated identificator), the program will pause and check with you before going forward. It might also ask you to pick an identifier yourself if this is a new item and the identifier is unavailable or invalid.
 
 ```
 An item with the same name already exists (dcu-we)
@@ -242,7 +256,7 @@ Uploading podfic info to ia...
 Done!
 ```
 
-### Templates and draft
+### Ao3 template and draft
 
 Then comes the html formatting and the ao3 draft.
 
@@ -250,7 +264,7 @@ Then comes the html formatting and the ao3 draft.
 Drafting podfic post to ao3... Creating ao3 template... Loging in to ao3... Done!
 ```
 
-All these steps added new metadata (links, mostly) and so had to be executed before uplaoding the info files to gdrive/the internet archive.
+All these steps added new metadata (links, mostly) and so had to be executed before uploading the info files to gdrive/the internet archive.
 
 ```
 Uploading podfic info to gdrive...
@@ -264,7 +278,17 @@ Uploading podfic info to ia...
 Done!
 ```
 
-And lastly, the program prepares the dreamwidth html and adds it to the stockpiling file.
+## 5 Posting the ao3 draft
+
+Double-check the ao3 draft and hit post.
+
+## 6 Dreamwidth, twitter and tumblr promo
+
+```bash
+python cli/promo.py
+```
+
+And lastly, the program prepares the dreamwidth html and adds it to the stockpiling file, creates a promo tweet, and queues a tumblr promo post. TODO write that part of the doc...
 
 ```
 Creating dw template... saving in ../../../Musique/2.5 to post/dw.txt... Done!
@@ -272,6 +296,4 @@ Creating dw template... saving in ../../../Musique/2.5 to post/dw.txt... Done!
 
 ## 5 Finishing up
 
-- Double-check the ao3 draft and hit post
 - Cross-post to dreamwidth if you want
-- Add the work to your tracker (this part isn't automated yet)

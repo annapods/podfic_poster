@@ -33,7 +33,9 @@ Feel free to create a branch if you want, or whatever else.
 
 ## Path to projects
 
-In project_files_tracker.py, edit the path to the parent folder of all the project folders.
+In src/project_files_tracker.py, edit the path to the parent folder of all the project folders.
+In cli files, edit the path to the tracker.
+TODO put that somewhere else somehow
 
 ## Virtual environment
 
@@ -43,14 +45,14 @@ Linux/Mac:
 ```bash
 python3.10 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e .
 ```
 
 Windows:
 ```bash
 python3.10 -m venv .venv
 .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ## Ao3 downloader
@@ -96,8 +98,31 @@ msgfmt -o $DIR/$LANG/LC_MESSAGES/$DOMAIN.mo $DIR/$LANG/LC_MESSAGES/$DOMAIN.po
 
 See the TRANSLATEME.txt file for information on how to add new languages. To adapt the template itself, you'll most likely need to edit the template_filler.py file and then go through the translation process again.
 
+## Tweeter promo
+
+[Create an app](https://developer.twitter.com/en/portal/dashboard).
+
+- App permission: Read and write and Direct message
+- Type of App: Web App, Automated App or Bot
+- Callback URI / Redirect URL: https://localhost/
+- Website URL: https://twitter.com/
+
+Save the API key and secret in settings.json as twitter_api_key and twitter_api_secret, or justs run the promo program and wait for it to ask you that information.
+
+## Tumblr promo
+
+[Register an app](https://api.tumblr.com/console/calls/user/info):
+
+- Application name: Podfic Promo
+- Application Description: Automatically post cover art, description of podfic and link to ao3
+- Application Website: https://localhost/
+- Default callback URL: https://localhost/
+- OAuth2 redirect URLs (space separate): https://localhost/
+
+Save OAuth Consumer Key and Consumer Secret under tumblr_consumer_key and tumblr_consumer_secret
+in settings.json, add also the name of your blog under tumblr_blog_name, or just run the promo program and wait for it to ask you those informations.
+
 ## Adapting the rest
 
-- 
 - template_filler.py: all of it, but mostly the contact info and the feedback policy
 - whatever else

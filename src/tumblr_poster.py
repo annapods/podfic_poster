@@ -1,15 +1,5 @@
 # -*- coding: utf-8 -*-
-""" Tumblr promo poster
-https://api.tumblr.com/console/calls/user/info -> Register a new app
-Application name: Podfic Promo
-Application Description: Automatically post cover art, description of podfic and link to ao3
-Application Website: https://localhost/
-Default callback URL: https://localhost/
-OAuth2 redirect URLs (space separate): https://localhost/
-Save OAuth Consumer Key and Consumer Secret under tumblr_consumer_key and tumblr_consumer_secret
-in settings.json, add also the name of your blog under tumblr_blog_name
-Click "Explore API", enter the consumer key and consumer secret,
-save the last two keys of the generated code as tumblr_oauth_token and tumblr_oauth_secret """
+""" Tumblr promo poster """
 
 
 from requests_oauthlib import OAuth1Session

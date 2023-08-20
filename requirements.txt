@@ -15,7 +15,7 @@ chardet==4.0.0
 EbookLib==0.17.1
 idna==2.10
 lxml==4.9.1
-requests==2.25.1
+requests  # ==2.25.1
 six==1.16.0
 soupsieve==2.2.1
 tqdm==4.60.0
@@ -28,5 +28,7 @@ urllib3==1.26.5
 # ao3-poster  # 0.0.7
 markupsafe==2.0.1
 
-tweepy  # ==4.14.0
+# Tweepy 4.4.0 does not have OAuth1UserHandler anymore, to update code https://docs.tweepy.org/en/v4.4.0/auth_tutorial.html#oauth-1-authentication
+tweepy==4.14.0
 pytumblr  # ==0.1.2
+jsonpickle  # ==3.0.2

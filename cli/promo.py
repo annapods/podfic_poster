@@ -7,6 +7,7 @@ from cli.cli_utils import get_existing_id_and_project
 from src.dw_poster import DWPoster
 from src.tumblr_poster import TumblrPoster
 from src.project import ProjectsTracker
+from src.tweet_poster import TweetPoster
 
 
 if __name__ == "__main__":

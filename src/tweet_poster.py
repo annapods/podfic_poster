@@ -3,23 +3,9 @@
 Code copied and adapted from https://github.com/twitterdev/Twitter-API-v2-sample-code/blob/main/Manage-Tweets/create_tweet.py#L11
 For a description of the API, see https://api.twitter.com/2/openapi.json
 
-Create an app at https://developer.twitter.com/en/portal/dashboard
-App permission: Read and write and Direct message
-Type of App: Web App, Automated App or Bot
-Callback URI / Redirect URL: https://localhost/
-Website URL: https://twitter.com/
-Save the API key and secret in settings.json as twitter_api_key and twitter_api_secret
-
 For more information, see
 - https://stackoverflow.com/questions/70891698/how-to-post-a-tweet-with-media-picture-using-twitter-api-v2-and-tweepy-python
 - https://stackoverflow.com/questions/66156958/how-to-acess-tweets-with-bearer-token-using-tweepy-in-python
-
-
-// "twitter_client_id": "dTRpdWN3Z21SVTU2X2xiRV9hZmQ6MTpjaQ",
-// "twitter_client_secret": "3fPGwAhGE19zn6qFYo4wFCdhqgcQN6-AQFqL48euixIhc_W2Pv",
-// "twitter_bearer_token": "AAAAAAAAAAAAAAAAAAAAAHq0pQEAAAAAj1vH58xCAajkXzlPksUqFpiDthw%3D4ESlMyVAUy7rPxX0TyqGyy574JDMGryp5MoZIcvahk15k3DETw",
-// "twitter_access_token": "872769423005937665-Rb6epNGT8lSKUuFt9LroIDeOqxtPDU3",
-// "twitter_access_token_secret": "enVCtjH9Z1UWwcaokc31uwXzq67AsTncfoLDNxCcab8Tj",
 """
 
 from tweepy import OAuth1UserHandler, API
