@@ -4,32 +4,34 @@
 
 from os.path import join, exists
 from os import mkdir, listdir
-import sys
-from src.base_object import VerboseObject
+from sys import exit
+from typing import List, Optional
+from src.base_object import BaseObject
+from src.project_id import ProjectID
 
 
 class CompressedFileTracker:
     """ Compressed and raw versions of the same file(s), ex: wav VS mp3 audio, or svg VS png cover
     art """
-    def __init__(self, compressed=[], raw=[]):
+    def __init__(self, compressed:List=[], raw:List=[]) -> None:
         self.compressed = compressed
         self.raw = raw
 
 class FormattedFileTracker:
     """ Formatted and unformatted versions of the same file(s), ex: mp3 file named after the
     project abbreviation, no metadata, no cover art VS ready to be posted """
-    def __init__(self, formatted=[], unformatted=[]):
+    def __init__(self, formatted:List=[], unformatted:List=[]) -> None:
         self.formatted = formatted
         self.unformatted = unformatted
 
 class TemplateFileTracker:
     """ Filled ao3 and dw template files """
-    def __init__(self, ao3="", dw=""):
+    def __init__(self, ao3:str="", dw:str="") -> None:
         self.ao3 = ao3
         self.dw = dw
 
 
-class FileTracker(VerboseObject):
+class FileTracker(BaseObject):
     """ Keeps track of project files:
     - folder
     - metadata
@@ -56,10 +58,10 @@ class FileTracker(VerboseObject):
     dw_mass_xpost_file = join(wips_folder, "dw.txt")
 
 
-    def __init__(self, project_id, verbose=True):
+    def __init__(self, project_id:ProjectID, verbose:bool=True, folder:Optional[str]=None) -> None:
         super().__init__(verbose)
         self._project_id = project_id
-        self.folder = self._get_folder()
+        self.folder = self._get_folder(folder)
 
         # Files which are always there, predictably named, etc
         self.metadata = join(self.folder, f'{self._project_id.title_abr} metadata.yaml')
@@ -74,7 +76,7 @@ class FileTracker(VerboseObject):
         self.update_file_paths()
 
 
-    def update_file_paths(self):
+    def update_file_paths(self) -> None:
         """ Populates the known files by looking for existing files in the folder """
 
         def get_files(contains:str="", endswith:str="", folder:str=self.folder):
@@ -106,42 +108,20 @@ class FileTracker(VerboseObject):
         # print("fic", self.fic)
 
 
-    def _get_folder(self, folder:str=""):
+    def _get_folder(self, folder:Optional[str]=None) -> str:
         """ Returns the path to the project folder, ex: "wips_folder/fandom - project"
-        Gets user input on whether to create or reuse a folder
+        Raises an error if it doesn't exit
         WARNING gotta do the title and fandom stuff first """
 
         folder = folder if folder else join(
             FileTracker.wips_folder,
             f"{self._project_id.fandom_abr.lower()} - {self._project_id.title_abr}"
         )
+        if not exists(folder): raise FileNotFoundError(f"\nProject folder doesn't exist yet: {folder}")
+        self._vprint(f"\nFound a project folder! {folder}")
+        return folder
+        
 
-        # If the folder already exists...
-        if exists(folder):
-            print(f"\nFound a project folder! {folder}")
-            print("You can:")
-            print("- Use it (hit return without typing anything)")
-            print("- Quit (type quit and then hit return)")
-            print("- Use another folder (type the path to the folder then hit return)")
-            choice = input("Your choice? ")
-            if choice == "":
-                return folder
-            if choice == "quit":
-                print("Bye!")
-                sys.exit()
-            return self._get_folder(choice)
-
-        # If the folder doesn't exist...
-        print(f"\nThat folder doesn't exist yet: {folder}")
-        print("You can:")
-        print("- Create it (hit return)")
-        print("- Quit (type quit)")
-        print("- Use another folder path (type it into the terminal")
-        choice = input("Your choice? ")
-        if choice == "":
-            mkdir(folder)
-            return folder
-        if choice == "quit":
-            print("Bye!")
-            sys.exit()
-        return self._get_folder(choice)
+    # TODO check what is there?
+    def check(self) -> None:
+        pass

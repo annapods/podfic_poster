@@ -6,7 +6,7 @@ NOTE had to add the re.DOTALL flag in _get_summaries, might have to everywhere e
  """
 
 from re import search as re_search, findall as re_findall, DOTALL
-from src.base_object import VerboseObject
+from src.base_object import BaseObject
 
 
 def flatten(list_of_lists):
@@ -22,7 +22,7 @@ def remove_dup(list_of_items):
     return new
 
 
-class HTMLExtractor(VerboseObject):
+class HTMLExtractor(BaseObject):
     """ Data extraction from downloaded ao3 html files using regex
     Use extract_html_data to get the info """
 
@@ -140,12 +140,12 @@ class HTMLExtractor(VerboseObject):
             'Parent Works': list(map(list, zip(self._get_urls(), self._get_titles()))),
             "Writers": self._get_authors(),
             # "Series": self._get_series(),
-            "Summary": self._get_summaries(),
+            "Summary": "</p>\n\n<p>".join(self._get_summaries()),
             "Wordcount": self._get_wordcount(),
             "Language": self._get_language(),
 
             "Archive Warnings": self._get_tags("Archive Warning"),
-            "Rating": self._get_tags("Rating"),
+            "Rating": self._get_tags("Rating")[0],
             "Categories": self._get_tags("Category"),
             "Fandoms": self._get_tags("Fandom"),
             "Relationships": self._get_tags("Relationship"),

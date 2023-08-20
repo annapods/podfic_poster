@@ -6,11 +6,12 @@ import requests
 
 from ao3downloader.actions import globals as ao3dl_globals
 from ao3downloader import ao3, fileio
+from ao3downloader.repo import login
 from ao3downloader.strings import DOWNLOAD_FOLDER_NAME
-from src.base_object import VerboseObject
+from src.base_object import BaseObject
+from src.secret_handler import get_secrets
 
-
-class HTMLDownloader(VerboseObject):
+class HTMLDownloader(BaseObject):
     """ Download parent work html from ao3 to the destination folder """
 
 
@@ -19,7 +20,8 @@ class HTMLDownloader(VerboseObject):
 
         self._vprint("\nDownloading html...")
         session = requests.sessions.Session()
-        ao3dl_globals.ao3_login(session, login=True)
+        username, password = get_secrets(["ao3_username", "ao3_password"])
+        login(username, password, session)
         logfile = ao3dl_globals.get_logfile(DOWNLOAD_FOLDER_NAME)
         fileio.write_log(logfile, {'starting': link})
         filetype = "HTML"

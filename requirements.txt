@@ -29,3 +29,4 @@ urllib3==1.26.5
 markupsafe==2.0.1
 
 tweepy  # ==4.14.0
+pytumblr  # ==0.1.2

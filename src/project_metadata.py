@@ -8,39 +8,49 @@ and templates
 from collections import UserDict
 from datetime import date
 import yaml
-from typing import List, Tuple
+from regex import search as re_search
+from typing import List, Tuple, Any, Callable, Dict
 from src.html_extractor import HTMLExtractor
 from src.fandom_taxonomy import FandomTaxonomyCSV as FandomTaxonomy
 # from src.fandom_taxonomy import FandomTaxonomySQLite as FandomTaxonomy
-from src.base_object import VerboseObject
+from src.base_object import BaseObject, DebugError
+
+
+class PlaceholderValue(Exception):
+    def __init__(self, key:str, value:Any) -> None:
+        self.key = key
+        self.value = value
+        self.message = f"Placeholder value found for field {key}: {value}"
+        super().__init__(self.message)
 
 
 def not_placeholder_link(link:str, text:str) -> bool:
     """ Detects actual links, as opposed to placeholders """
-    return not (link.startswith("__") or text.startswith("__"))
+    return not_placeholder_text(link) and not_placeholder_text(text)
 
 def remove_placeholder_links(links:List[Tuple[str,str]]) -> List[Tuple[str,str]]:
     """ Removes the placeholder links """
     return [(link, name) for link, name in links if not_placeholder_link(link, name)]
 
+def not_placeholder_text(text:str) -> bool:
+    """ Detects actual text, as opposed to placeholders """
+    return not text.startswith("__")
 
-class ProjectMetadata(UserDict, VerboseObject):
+
+class ProjectMetadata(UserDict, BaseObject):
     """ Keeps track of all project metadata, aka, mostly ao3 metadata
 
     at initialisation:
     - Use "extract" mode to extract info from html files
-    - ... use "saved" mode to load info from saved info file
+    - Use "saved" mode to load info from saved info file
 
     afterward, use:
     - update(category, content) to update the info from outside
     - TODO create templates stuff
     """
 
-    mass_xpost_file = "../../Music/2.3 to post/dw.txt"
-
     default_values = {
         # filled automatically
-        "Work Title": "",
         "Language": "English",
         "Work Text": "__WORK_TEXT",
         "Podfic Link": "__PODFIC_LINK",
@@ -57,7 +67,7 @@ class ProjectMetadata(UserDict, VerboseObject):
         "Parent Works": [("__URL", "__TITLE")],
         "Writers": [("__URL", "__WRITER")],
         # "Series": self._get_series(),
-        "Summary": ["__SUMMARY"],
+        "Summary": "__SUMMARY",
         "Wordcount": "__WORDCOUNT",
         "Language": "__LANGUAGE",
         "Archive Warnings": [
@@ -92,15 +102,15 @@ class ProjectMetadata(UserDict, VerboseObject):
     }
 
 
-    def __init__(self, files:List[str], mode:str="from yaml", verbose:bool=True):
-        """ mode can be from yaml (saved metadata), from html (using HTMLExtractor,
+    def __init__(self, files:List[str], mode:str="from yaml", verbose:bool=True) -> None:
+        """ Mode can be from yaml (saved metadata), from html (using HTMLExtractor,
         with default values) or from scratch (default values only) """
-        VerboseObject.__init__(self, verbose)
+        BaseObject.__init__(self, verbose)
         UserDict.__init__(self, **ProjectMetadata.default_values)
         self._verbose = verbose
-        self._save_as = files.metadata
-        assert mode in ["from html", "from yaml", "from scratch"], \
-            "ProjectMetadata mode must be 'from html', 'from yaml' or 'from scratch'."
+        self.save_as = files.metadata
+        if mode not in ["from html", "from yaml", "from scratch"]: raise ValueError(
+            f"ProjectMetadata mode must be 'from html', 'from yaml' or 'from scratch', got {mode}")
 
         if mode == "from html":
             # Extract metadata from fic html files
@@ -114,7 +124,7 @@ class ProjectMetadata(UserDict, VerboseObject):
 
         if mode == "from yaml":
             # Load from saved file
-            with open(self._save_as, 'r') as file:
+            with open(self.save_as, 'r') as file:
                 self.data.update(yaml.safe_load(file))
 
         if mode == "from scratch":
@@ -122,19 +132,20 @@ class ProjectMetadata(UserDict, VerboseObject):
             self._save()
 
 
-    def _save(self):
+    def _save(self) -> None:
         """ Saves the to the yaml file """
-        with open(self._save_as, 'w') as file:
+        with open(self.save_as, 'w') as file:
             yaml.safe_dump(dict(self.data), file)
 
-    def update_md(self, category, content):
+    def update_md(self, category:str, content:Any) -> None:
         """ Updates one of the fields and saves the to the file
         NOTE update_md in order not to overwrite dict update method. """
-        assert category in self, "/!\\ work category doesn't exist"
+        if category not in self: raise KeyError(
+            f"{category} metadata field doesn't exist, can't set it to {content}")
         self[category] = content
         self._save()
 
-    def add_posting_date(self):
+    def add_posting_date(self) -> None:
         """ Saves the current date as the posting date
         https://stackoverflow.com/questions/32490629/getting-todays-date-in-yyyy-mm-dd-in-python """
         self.update_md("Posting Date", date.today().strftime('%d-%m-%Y'))
@@ -142,7 +153,7 @@ class ProjectMetadata(UserDict, VerboseObject):
 
     ### Additional tags
 
-    def add_podfic_tags(self):
+    def add_podfic_tags(self) -> None:
         """ Adds the missing podfic tags to the additional tags """
         tags = self["Additional Tags"]
         for tag in ["Podfic", "Audio Format: MP3", "Audio Format: Streaming"] + \
@@ -152,14 +163,18 @@ class ProjectMetadata(UserDict, VerboseObject):
         self.update_md("Additional Tags", tags)
 
 
-    def _get_audio_length_tag(self):
+    def _get_audio_length_tag(self) -> None:
         """ Returns the adequate audio length additional tag """
 
-        assert self["Audio Length"] != ProjectMetadata.default_values['Audio Length']
-        # TODO regex to capture three first numbers separated by ':', for cases like
-        # "00:10:49 (+freetalk: 26:45)"
-        hours, minutes, _ = self["Audio Length"].split(":")
-        hours, minutes = int(hours), int(minutes)
+        if self["Audio Length"] == ProjectMetadata.default_values['Audio Length']:
+            raise PlaceholderValue("Audio Length", self["Audio Length"])
+
+        regex = "^(?P<hours>[0-9]+):(?P<minutes>[0-9]{2}):(?P<seconds>[0-9]{2})"
+        found = re_search(regex, self["Audio Length"])
+        if not found: raise ValueError(
+            "Audio Length parameter does not fit the required {hours}:{minutes}:{seconds} format: "+\
+            self["Audio Length"])
+        hours, minutes = int(found.group("hours")), int(found.group("minutes"))
 
         conditions = (
             (20,  0, "Podfic Length: Over 20 Hours"),
@@ -186,69 +201,56 @@ class ProjectMetadata(UserDict, VerboseObject):
         for (min_hours, min_minutes, tag) in conditions:
             if hours >= min_hours and minutes >= min_minutes:
                 return tag
-        assert False, "BUG"
-        return ""
+
+        raise DebugError(f"No canonical audio length tag found for {self['Audio Length']}")
 
 
-    def _get_fandom_info(self):
+    def _get_fandom_info(self) -> None:
         """ Get the preferred version of the fandom tags and the media category using
-        FandomTaxonomy. """
+        FandomTaxonomy
+        TODO rewrite FandomTaxonomy... """
         fandom_taxonomy = FandomTaxonomy()
         preferred_tags, _, _, category = fandom_taxonomy.get_all_info(self["Fandoms"])
         self.update_md("Fandoms", preferred_tags)
         self.update_md("Media Category", category)
 
 
-    def check_and_format(self, posted=False):
+    def check_and_format(self, posted:bool=False) -> None:
         """ Double checks everything is ready to fill the templates """
-        at_most_one_categories = ["Summary", "Rating", "IA Link", "GDrive Link",
-            "Summary", "Audio Length"]
-        at_least_one_categories = ["Summary", "Rating", "IA Link", "IA Streaming Links", "GDrive Link",
-            "Audio Length", "Archive Warnings", "Fandoms"]
-        not_default_categories = ["Audio Length", "Media Category", "IA Link",
-            "GDrive Link", "IA Streaming Links"]
-        if posted:
-            not_default_categories.extend(["Podfic Link", "Posting Date"])
 
-        def assert_func(func, categories):
-            for category in categories:
-                assert func(category), f"/!\\ check {category}"
+        for category in ["Summary", "Rating", "IA Link", "GDrive Link", "Summary", "Audio Length"]:
+            if category in self and not isinstance(self[category], str) and \
+                isinstance(self[category], list) and len(self[category]) < 1:
+                raise ValueError(f"Too many elements for {category}: {self[category]}")
+        
+        for category in ["Summary", "Rating", "IA Link", "IA Streaming Links", "GDrive Link",
+            "Audio Length", "Archive Warnings", "Fandoms"]:
+            if not category in self:
+                raise ValueError(f"Not enough elements for {category}: {self[category]}")
 
-        def at_most_one_func(category):
-            if category not in self:
-                return True
-            if isinstance(self[category], str):
-                return True
-            if isinstance(self[category], list) and len(self[category]) == 1:
-                self[category] = self[category][0]
-                return True
-            return False
+        for category in ["Audio Length", "Media Category", "IA Link",
+            "GDrive Link", "IA Streaming Links"] + ["Podfic Link", "Posting Date"] if posted else []:
+            if self[category] == ProjectMetadata.default_values[category]:
+                raise PlaceholderValue(category, self[category])
 
-        def at_least_one_func(category):
-            return category in self
+        domains = [
+            ("Rating", ["Not Rated", "General Audiences", "Teen And Up Audiences", "Mature","Explicit"]),
+            ("Archive Warnings", ["Choose Not To Use Archive Warnings", "Graphic Depictions Of Violence",
+                "Major Character Death", "No Archive Warnings Apply", "Rape/Non-Con", "Underage"]),
+            ("Categories", ["F/F", "F/M", "Gen", "M/M", "Multi", "Other"])]
+        
 
-        def not_default_func(category):
-            return self[category] != ProjectMetadata.default_values[category]
+        for category, domain in domains:
+            if type(self[category]) == str:
+                if self[category] not in domain:
+                    raise ValueError(f"Unexpected value for {category}: {self[category]}\n"+\
+                        f"Should be in {domain}")
+            elif type(self[category]) == list:
+                for item in self[category]:
+                    if item not in domain:
+                        raise ValueError(f"Unexpected value for {category}: {item}\n"+\
+                            f"Should be in {domain}")
+            else:
+                raise ValueError(
+                    f"Unexpected type for {category}: should be str or list, is {self[category]}")
 
-        assert_func(at_most_one_func, at_most_one_categories)
-        assert_func(at_least_one_func, at_least_one_categories)
-        assert_func(not_default_func, not_default_categories)
-
-        assert self["Rating"] in [
-            "Not Rated", "General Audiences", "Teen And Up Audiences", "Mature", "Explicit"
-        ], "/!\\ check ratings"
-
-        for warning in self["Archive Warnings"]:
-            assert warning in [
-                "Choose Not To Use Archive Warnings",
-                "Graphic Depictions Of Violence",
-                "Major Character Death",
-                "No Archive Warnings Apply",
-                "Rape/Non-Con",
-                "Underage"
-        ], "/!\\ check Archive Warnings"
-
-        for category in self["Categories"]:
-            assert category in [
-                "F/F", "F/M", "Gen", "M/M", "Multi", "Other"
-            ], "/!\\ check Categories"

@@ -7,10 +7,11 @@ Filling ao3 and dw posting templates
 TODO tracker
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from gettext import translation
-from src.base_object import VerboseObject
+from src.base_object import BaseObject
 from src.project_metadata import remove_placeholder_links, not_placeholder_link
+from src.project import Project
 
 
 # Language set in __init__ to this global variable
@@ -21,10 +22,10 @@ def i18l(_:str) -> str:
     return "NOPE, gotta debug, sorry!"
 
 
-class Template(VerboseObject):
+class Template(BaseObject):
     """ Auxiliary html-coding functions and setting the locale """
 
-    def __init__(self, lang:str, verbose:bool=True):
+    def __init__(self, lang:str, verbose:bool=True) -> None:
         super().__init__(verbose)
         translator = translation('template_filler', localedir='.locales', languages=[lang])
         global i18l
@@ -41,11 +42,11 @@ class Template(VerboseObject):
         return f'''<a href="{link}">{text}</a>'''
 
     @staticmethod
-    def get_enum(items:List, conj:str="") -> str:
+    def get_enum(items:List, conj:str="and") -> str:
         """ Joins items in a string with commas and 'and' """
         if not items: return ""
         if len(items) == 1: return items[-1]
-        conj = i18l(conj) if conj else i18l("and")
+        conj = i18l(conj)
         if len(items) == 2: return " ".join([items[-2], conj, items[-1]])
         return ', '.join(items[:-2] + [" ".join([items[-2], conj, items[-1]])])
 
@@ -56,15 +57,15 @@ class Template(VerboseObject):
         return Template.get_enum([Template.get_a_href(link, text) for link, text in items])
 
     @staticmethod
-    def get_img(link:str="", width:int=0, height:int=0,
-        img_alt_text:str="",
-        no_img_alt_text:str="")-> str:
+    def get_img(link:Optional[str]=None, width:Optional[int]=None, height:Optional[int]=None,
+        img_alt_text:Optional[str]=None, no_img_alt_text:str="")-> str:
         """ Formats info into the html for an embedded image """
         template = f'''<img src="{link}"''' if link else '''<img src="COVER"'''
         if width: template += f' width="{width}"'
         if height: template += f' height="{height}"'
-        if link: template += f''' alt="{img_alt_text}" />'''
-        else: template += f''' alt="{no_img_alt_text}" />'''
+        if link and img_alt_text: template += f''' alt="{img_alt_text}"'''
+        elif no_img_alt_text: template += f''' alt="{no_img_alt_text}"'''
+        template += " />"
         return template
 
     @staticmethod
@@ -84,15 +85,15 @@ class Template(VerboseObject):
 class DWTemplate(Template):
     """ DW template creator! """
 
-    def __init__(self, metadata, verbose:bool=True):
-        super().__init__(metadata["Language"], verbose)
-        self._info = metadata
+    def __init__(self, project:Project, verbose:bool=True) -> None:
+        super().__init__(project.metadata["Language"], verbose)
+        self._info = project.metadata
         self.post_text = self._get_post()
 
     def _get_post(self) -> str:
         """ Formats the dw post html """
 
-        def heading(header):
+        def heading(header:str) -> str:
             """ Formats a dw info header """
             return self.add_tag("str", (header+i18l(':')))+" "
         
@@ -141,9 +142,9 @@ class DWTemplate(Template):
 class Ao3Template(Template):
     """ Filling the ao3 template """
 
-    def __init__(self, metadata, verbose:bool=True):
-        super().__init__(metadata["Language"], verbose)
-        self._info = metadata
+    def __init__(self, project:Project, verbose:bool=True) -> None:
+        super().__init__(project.metadata["Language"], verbose)
+        self._info = project.metadata
         self.summary = self._get_ao3_summary()
         self.work_text = self._get_ao3_work_text()
 
@@ -155,7 +156,10 @@ class Ao3Template(Template):
         # Check if summary is the parent work's or if it has been edited for the podfic already
         # This is (clumsily) done using the audio length
         if self._info["Audio Length"] not in summary:
-            summary += f'\n\n{self._info["Audio Length"]}'
+            # Couldn't figure out how to make it actually have a newline from the get go otherwise
+            summary += f"""\n
+
+\n{self._info["Audio Length"]}"""
             links = remove_placeholder_links(self._info["Writers"])
             if links:
                 summary += ' :: '
@@ -344,17 +348,31 @@ class Ao3Template(Template):
 
 class TwitterTemplate(Template):
     """ Filling the twitter promo template """
-    def __init__(self, metadata, verbose:bool=True):
-        super().__init__(metadata["Language"], verbose)
-        self._info = metadata
-        self._get_tweet_text()
+    def __init__(self, project:Project, verbose:bool=True) -> None:
+        super().__init__(project.metadata["Language"], verbose)
+        self._info = project.metadata
+        self._project_id = project.project_id
+        self.tweet = self._get_tweet_text(project.project_id.full_raw_title)
     
-    def _get_tweet_text(self) -> None:
-        self.tweet = i18l('NEW ')+self._info["Work Type"].upper()
-        self.tweet += "\n- "+i18l("Title")+i18l(":")+" "+self._info["Work Title"]
-        self.tweet += "\n- "+i18l("Fandom")+i18l(":")+" "+Template.get_enum(self._info["Fandoms"])
-        self.tweet += "\n- "+i18l("Length")+i18l(":")+" "+self._info["Audio Length"]
-        self.tweet += "\n- "+i18l("Rating")+i18l(":")+" "+self._info["Rating"]
+    def _get_tweet_text(self, full_title:str) -> None:
+        """ TODO rewrite """
+        tweet = i18l('NEW ')+self._info["Work Type"].upper()
+        tweet += "\n"+self._project_id.full_raw_title
+        tweet += "\n- "+i18l("Fandom")+i18l(":")+" "+Template.get_enum(self._info["Fandoms"])
+        tweet += "\n- "+i18l("Length")+i18l(":")+" "+self._info["Audio Length"]
+        tweet += "\n- "+i18l("Rating")+i18l(":")+" "+self._info["Rating"]
         ao3_id = self._info["Podfic Link"].split("/")[-2]
-        self.tweet += "\nao3.org/works/"+ao3_id
+        tweet += "\nao3.org/works/"+ao3_id
+        return tweet
 
+
+class TumblrTemplate(DWTemplate):
+    """ Filling the tumblr promo template """
+    def __init__(self, project:Project, verbose:bool=True) -> None:
+        # super().__init__(metadata["Language"], verbose)
+        super().__init__(project, verbose)
+        self._info = project.metadata
+        self._project_id = project.project_id
+        self.body = self._get_post()  # For now, same formatting as DW
+        self.title = "["+self._info['Work Type']+"] "+project.project_id.raw_title
+        self.tags = ["podfic"]  # apparently, ["tag1,tag2"], not ["tag1", "tag2"]

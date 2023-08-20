@@ -8,10 +8,12 @@ https://stackoverflow.com/questions/70993735/pydrive-generating-a-sharable-link-
 from os.path import basename
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
-from src.base_object import VerboseObject
+from typing import Optional
+from src.base_object import BaseObject
+from src.project import Project
 
 
-class GDriveUploader(VerboseObject):
+class GDriveUploader(BaseObject):
     """ GDrive upload helper!
     Gets the paths to the file paths through a file_info object, and the work info
     through work_info.
@@ -26,11 +28,11 @@ class GDriveUploader(VerboseObject):
     # The name of the folder with all the podfic subfolders
     podfic_folder_path = "podfic files"
 
-    def __init__(self, project_id, files, metadata, verbose=True):
+    def __init__(self, project:Project, verbose:bool=True) -> None:
         super().__init__(verbose)
-        self._project_id = project_id
-        self._files = files
-        self._metadata = metadata
+        self._project_id = project.project_id
+        self._files = project.files
+        self._metadata = project.metadata
 
         # Connection to API
         gauth = GoogleAuth()
@@ -45,14 +47,14 @@ class GDriveUploader(VerboseObject):
         self._metadata.update_md("GDrive Link", self.link)
 
 
-    def upload_audio(self):
+    def upload_audio(self) -> None:
         """ Uploads audio files (mp3 only) to the project's gdrive folder """
         self._vprint("Uploading podfic files to gdrive...")
         for path in self._files.audio.compressed.formatted:
             self.upload_file(path)
         self._vprint("Done!\n")
 
-    def upload_cover(self):
+    def upload_cover(self) -> None:
         """ Uploads cover files (all png) to the project's gdrive folder """
         self._vprint("Uploading podfic cover to gdrive...")
         for path in self._files.cover.compressed:
@@ -62,13 +64,13 @@ class GDriveUploader(VerboseObject):
         else:
             self._vprint("No cover found.\n")
 
-    def upload_metadata(self):
+    def upload_metadata(self) -> None:
         """ Uploads metadata file (yaml) to the project's gdrive folder """
         self._vprint("Uploading podfic info to gdrive...")
         self.upload_file(self._files.metadata)
         self._vprint("Done!\n")
 
-    def upload_file(self, path):
+    def upload_file(self, path) -> None:
         """ Uploads the given file to the project's gdrive folder
         :args path: str, path to the file """
         self._vprint(f"{path}")
@@ -79,7 +81,7 @@ class GDriveUploader(VerboseObject):
         file.Upload()
 
 
-    def _get_child_id(self, parent_id, child_name):
+    def _get_child_id(self, parent_id:str, child_name:str) -> Optional[str]:
         """ Gets the id of the first element with the given name and parent
 
         :args parent_id: id of the parent folder
@@ -127,7 +129,7 @@ class GDriveUploader(VerboseObject):
         self._folder.Upload()
 
 
-    def _set_up_permission(self):
+    def _set_up_permission(self) -> None:
         """ Make the folder accessible by everyone as readers, get the shareable link """
 
         # Open up sharing permission

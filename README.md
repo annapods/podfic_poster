@@ -8,7 +8,7 @@ Mostly for me, but if it can be useful feel free to reuse any parts of it? MIT l
 
 ## Documentation
 
-Cf INSTALLME.md, USAGE.md, TRANSLATEME.md, and the github issues.
+Cf INSTALLME.md, USAGE.md, TRANSLATEME.md, TODO.md and the github issues.
 
 ## Current process and automation levels
 
@@ -20,10 +20,12 @@ Cf INSTALLME.md, USAGE.md, TRANSLATEME.md, and the github issues.
 - [x] upload to ia
 - [x] upload to ao3
     - TODO post draft
-- [x] save dw text post
-    - TODO post by email
 - [x] fandom taxonomy
-- [ ] fill tracker
-    - TODO add tracker tag to work info somehow, tracker in sqlite?
+- [x] fill tracker
+    - TODO stats
 - [ ] handle files after posting
     - TODO delete unnecessary files (ask first), rename folder with posting date, move to posted/to crosspost
+- [x] save dw text post
+    - TODO post by email
+- [x] promo on twitter
+- [x] queue promo post on tumblr

@@ -9,20 +9,22 @@ https://www.thepythoncode.com/article/use-gmail-api-in-python"""
 
 
 from os.path import exists
+from src.project import Project
 from src.project_files_tracker import FileTracker
 from src.template_filler import DWTemplate
-from src.base_object import VerboseObject
+from src.base_object import BaseObject
 
 
-class DWPoster(VerboseObject):
+class DWPoster(BaseObject):
     """ DW poster helper!
     https://www.dreamwidth.org/manage/emailpost?mode=help """
 
-    def __init__(self, project_id, files, metadata, verbose=True):
+    def __init__(self, project:Project, verbose:bool=True) -> True:
         super().__init__(verbose)
-        self._project_id = project_id
-        self._files = files
-        self._metadata = metadata
+        self._project_id = project.project_id
+        self._files = project.files
+        self._metadata = project.metadata
+        self._template = DWTemplate(project, verbose)
 
         # with open("settings.json", 'r') as file:
         #     edit = False
@@ -90,14 +92,14 @@ class DWPoster(VerboseObject):
     #     server.quit()
 
 
-    def save_dw_post_text(self, mass_xpost=True):
+    def save_dw_post_text(self, mass_xpost:bool=True) -> None:
         """ Saves all dw posting info to the template file, ready to go!
         if mass_xpost, concatenates the html to the relevant file to enable mass posting later """
 
         self._vprint('Creating dw template...', end=" ")
         self._metadata.check_and_format(posted=True)
 
-        post = DWTemplate(self._metadata).post_text
+        post = self._template.post_text
 
         if mass_xpost:
             self._vprint(f"saving in {FileTracker.dw_mass_xpost_file}...", end=" ")

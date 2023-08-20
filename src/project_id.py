@@ -7,19 +7,23 @@ import re
 
 
 class ProjectID:
-    """ Keeps track of project id:
+    """ Keeps track of project id details:
+    - id
     - fandom_abr
     - raw_title
     - safe_title
     - title_abr
+    - full_safe_title
+    - full_raw_title
 
     Used by ProjectTracker """
 
-    def __init__(self, fandom_abr="", raw_title=""):
-        self.fandom_abr = fandom_abr if fandom_abr else input("Fandom abr: ")
-        self.raw_title = raw_title if raw_title else input("Full project title: ")
+    def __init__(self, fandom_abr:str, raw_title:str) -> None:
+        self.fandom_abr, self.raw_title = fandom_abr, raw_title
         self.safe_title = self._get_safe_title(self.raw_title)
         self.title_abr = self._get_title_abr()
+        self.full_safe_title = self._get_full_title(safe_for_path=True)
+        self.full_raw_title = self._get_full_title(safe_for_path=False)
 
     def _get_safe_title(self, original:str):
         """ Returns a version of the title that is safe for paths
@@ -51,3 +55,14 @@ class ProjectID:
         initials = [word[0] for word in words]  # get initials
         abr = "".join(initials)  # get string
         return abr
+
+    def _get_full_title(self, safe_for_path:bool) -> str:
+        """ Returns "[FANDOM] title"
+        If safe_for_path, uses the safe version of the title """
+        title = self.safe_title if safe_for_path else self.raw_title
+        title = f'''[{self.fandom_abr}] {title}'''
+        return title
+
+    def get_generic_id(self) -> str:
+        """ Returns the generic ID for the given data """
+        return "-".join([self.fandom_abr, self.title_abr]).lower()

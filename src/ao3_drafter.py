@@ -5,38 +5,42 @@
 from json import load as js_load, dump as js_dump
 from re import compile as re_compile
 from bs4 import SoupStrainer, BeautifulSoup
-from requests import Session
+from requests import Response, Session
 from typing import Optional, List, Tuple, Dict
 from src.template_filler import Ao3Template
-from src.base_object import VerboseObject
-from src.project_metadata import not_placeholder_link
+from src.base_object import BaseObject, DebugError
+from src.project_metadata import not_placeholder_link, not_placeholder_text
+from src.project import Project
 
 
 AO3_URL = 'https://archiveofourown.org/'
 LOGIN_URL = AO3_URL+'users/login'
 
 
-class Ao3Poster(VerboseObject):
+class Ao3DrafterError(Exception): pass
+
+
+class Ao3Poster(BaseObject):
     """ Ao3 posting helper!
     Uses ao3-poster to create an ao3 draft
      """
 
-    def __init__(self, project_id, files, metadata, verbose=True):
+    def __init__(self, project:Project, verbose:bool=True) -> None:
         super().__init__(verbose)
-        self._project_id = project_id
-        self._files = files
-        self._metadata = metadata
+        self._project_id = project.project_id
+        self._files = project.files
+        self._metadata = project.metadata
+        self._template = Ao3Template(project, verbose)
         self._get_session()
         self._get_new_work_codes_and_auth_token()
 
     @staticmethod
-    def _validate_response_url(response:str) -> None:
-        """ Raises AssertionError if the response indicates a lost session or some other problem """
+    def _validate_response_url(response:Response) -> None:
+        """ Raises exceptions if the response indicates a lost session or some other problem """
         url = response.headers['Location'] if response.status_code == 302 else response.url
-        assert url != LOGIN_URL, "Ao3 login required"
-        assert url != AO3_URL+"auth_error", "Ao3 session expired"
-        assert url != AO3_URL+"lost_cookie", "Lost ao3 cookie, session expired"
-        assert response.status_code != 500, 'Received server error'  # ?
+        if url == LOGIN_URL: raise Ao3DrafterError("Ao3 login required")
+        if url == AO3_URL+"auth_error": raise Ao3DrafterError("Ao3 session expired")
+        if url == AO3_URL+"lost_cookie": raise Ao3DrafterError("Lost ao3 cookie, session expired")
 
     @staticmethod
     def _get_authenticity_token(text:str, form_id:str) -> str:
@@ -75,7 +79,7 @@ class Ao3Poster(VerboseObject):
 
     def _get_session(self) -> None:
         """ Fetches credentials and logs in to an ao3 session. """
-        self._vprint("Loging in to ao3...", end=" ")
+        self._vprint("Logging in to ao3...", end=" ")
         # Ao3 credentials should be saved in the settings file
         with open("settings.json", "r") as file:
             settings = js_load(file)
@@ -116,6 +120,7 @@ class Ao3Poster(VerboseObject):
         # Other types of failure are not checked and will probably raise an exception later on
         
         self.session = session
+        self._vprint("Done!")
 
 
     def _get_new_work_codes_and_auth_token(self) -> None:
@@ -143,22 +148,24 @@ class Ao3Poster(VerboseObject):
         post_url = AO3_URL+'works'
         response = self.session.post(post_url, post_data, allow_redirects=False)
         # Validate response
-        # assert response.status_code != 500, 'Received server error'
+        if response.status_code == 500:
+            raise Ao3DrafterError("Received server error: " +str(response.content))
         Ao3Poster._validate_response_url(response)
         # Raise errors
         if response.url == post_url:
             errors = []
             soup = BeautifulSoup(response.content, 'lxml')
             error = soup.find(id='error')
-            assert not error, f"Errors while posting: {error}"
+            if error: raise Ao3DrafterError(f"Errors while posting: {errors}")
             new_work_form = soup.find('form', id='new_work')
             if new_work_form:
                 invalid_pseuds = new_work_form.find('h4', text=re_compile(r'These pseuds are invalid:'))
-                assert not invalid_pseuds, f"Invalid ao3 pseuds listed as authors: {invalid_pseuds}"
+                if invalid_pseuds:
+                    raise Ao3DrafterError(f"Invalid ao3 pseuds listed as authors: {invalid_pseuds}")
             else:
-                print("DEBUG draft_podfic: new_work_form == False")
+                self._vprint("draft_podfic: new_work_form == False")  # raise DebugError("draft_podfic: new_work_form == False")
         else:
-            print("DEBUG draft_podfic: response.url != post_url")
+            self._vprint("draft_podfic: response.url != post_url")  # raise DebugError("draft_podfic: response.url != post_url")
         # Save new work link
         link = response.headers['Location'] if response.status_code == 302 else response.url
         self._metadata.update_md(category="Podfic Link", content=link)
@@ -179,9 +186,8 @@ class Ao3Poster(VerboseObject):
         # Add podfic tags
         metadata.add_podfic_tags()
         # Add Ao3 template html
-        template = Ao3Template(self._metadata)
-        metadata.update_md("Summary", template.summary)
-        metadata.update_md("Work Text", template.work_text)
+        metadata.update_md("Summary", self._template.summary)
+        metadata.update_md("Work Text", self._template.work_text)
 
         # Format info into a list of tuples using the expected keys
         post_data = []
@@ -212,21 +218,22 @@ class Ao3Poster(VerboseObject):
 
         # Work title
         post_data.append(("work[title]", f'[{metadata["Work Type"]}] {self._project_id.raw_title}'))
-        # post_data.append(("work[title]", f'[{metadata["Work Type"]}] {metadata["Work Title"]}'))
 
         # Own pseuds
         creators = [pseud for _, pseud in metadata["Creator/Pseud(s)"]]
         invalid_creators = set(creators) - set(self.own_pseud_codes)
-        assert not invalid_creators, 'The following are not your pseuds: ' +\
-            ",".join(invalid_creators) + 'Please use "Add co-creators?" for non-pseud co-creators.'
+        if invalid_creators: raise Ao3DrafterError('The following are not your pseuds: ' +\
+            ",".join(invalid_creators) + 'Please use "Add co-creators?" for non-pseud co-creators.')
         for c in creators: post_data.append(("work[author_attributes][ids][]", self.own_pseud_codes[c]))
 
         # Co-creator pseuds
         post_data.append(("pseud[byline]",
-            ",".join([pseud for _, pseud in metadata["Add co-creators?"] if not pseud.startswith("__")])))
+            ",".join([pseud for _, pseud in metadata["Add co-creators?"] if not_placeholder_text(pseud)])))
 
         # Language
-        assert metadata["Language"] in self.language_codes, f'Unknown language: {metadata["Language"]}'
+        if metadata["Language"] not in self.language_codes:
+            raise ValueError(f'Unknown language: {metadata["Language"]} not in '+\
+                str([self.language_codes[l] for l in self.language_codes]))
         post_data.append(('work[language_id]', self.language_codes[metadata["Language"]]))
 
         # Parent works

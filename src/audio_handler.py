@@ -8,7 +8,8 @@ from os import rename
 from taglib import File as taglib_File
 from mutagen.mp3 import MP3
 from mutagen.id3 import APIC
-from src.base_object import VerboseObject
+from src.base_object import BaseObject
+from src.project_metadata import not_placeholder_text
 
 
 def get_padded_track_number_string(track_number, total_tracks):
@@ -19,24 +20,16 @@ def get_padded_track_number_string(track_number, total_tracks):
     return track_string
 
 
-class AudioHandler(VerboseObject):
+class AudioHandler(BaseObject):
     """ Handling audio files: renaming, updating metadata """
 
-    def __init__(self, project_id, files, metadata, verbose=True):
+    def __init__(self, project, verbose:bool=True) -> None:
         super().__init__(verbose)
-        self._project_id = project_id
-        self._files = files
-        self._metadata = metadata
-        self._metadata_title = self._get_audio_file_title(safe_for_path=False)
-        self._file_title = self._get_audio_file_title(safe_for_path=True)
-
-
-    def _get_audio_file_title(self, safe_for_path:bool):
-        """ Returns "[FANDOM] title"
-        If safe_for_path, uses the safe version of the title """
-        title = self._project_id.safe_title if safe_for_path else self._project_id.raw_title
-        title = f'''[{self._project_id.fandom_abr}] {title}'''
-        return title
+        self._project_id = project.project_id
+        self._files = project.files
+        self._metadata = project.metadata
+        self._metadata_title = self._project_id.full_raw_title
+        self._file_title = self._project_id.full_safe_title
 
 
     def _get_artist_tag(self):
@@ -45,7 +38,7 @@ class AudioHandler(VerboseObject):
 
         def get_enum(persons):
             """ Aux function, to string """
-            return ", ".join([pseud for url, pseud in persons if not pseud.startswith("__")])
+            return ", ".join([pseud for _, pseud in persons if not_placeholder_text(pseud)])
 
         artists = get_enum(
             self._metadata["Creator/Pseud(s)"] \
@@ -58,8 +51,8 @@ class AudioHandler(VerboseObject):
         return artists
 
 
-    def update_metadata(self, final_files=True):
-        """ Adds metadata to the mp3 and wav audio files using taglib
+    def update_metadata(self, final_files:bool=True) -> None:
+        """ Adds metadata to the audio files of the given format using taglib
         By default, only to the final mp3 and wav files ; to go for the wip files instead, set
         final_files to False
         Does not add the cover art
@@ -73,15 +66,6 @@ class AudioHandler(VerboseObject):
             else self._files.audio.compressed.unformatted
         wavs = self._files.audio.raw.formatted if final_files \
             else self._files.audio.raw.unformatted
-        for files, file_type in [(mp3s, "mp3"), (wavs, "wav")]:
-            if not files:
-                print(f"Could not find any {file_type} files. Do you want to...")
-                print("- Continue regardless (hit return without typing anything)")
-                print("- Quit (type anything then hit return)")
-                choice = input("Your choice? ")
-                if choice != "":
-                    print("Bye!")
-                    sys_exit()
 
         artist = self._get_artist_tag()
 

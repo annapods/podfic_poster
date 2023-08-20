@@ -3,15 +3,23 @@
 Code copied and adapted from https://github.com/twitterdev/Twitter-API-v2-sample-code/blob/main/Manage-Tweets/create_tweet.py#L11
 For a description of the API, see https://api.twitter.com/2/openapi.json
 
-To set up, follow this guide: https://developer.twitter.com/en/docs/tutorials/tweeting-media-v2
-Set up permission for read, write and message
-You'll also need to save your app's API information in settings.json:
-- twitter_api_key
-- twitter_api_secret
+Create an app at https://developer.twitter.com/en/portal/dashboard
+App permission: Read and write and Direct message
+Type of App: Web App, Automated App or Bot
+Callback URI / Redirect URL: https://localhost/
+Website URL: https://twitter.com/
+Save the API key and secret in settings.json as twitter_api_key and twitter_api_secret
+
 For more information, see
 - https://stackoverflow.com/questions/70891698/how-to-post-a-tweet-with-media-picture-using-twitter-api-v2-and-tweepy-python
 - https://stackoverflow.com/questions/66156958/how-to-acess-tweets-with-bearer-token-using-tweepy-in-python
 
+
+// "twitter_client_id": "dTRpdWN3Z21SVTU2X2xiRV9hZmQ6MTpjaQ",
+// "twitter_client_secret": "3fPGwAhGE19zn6qFYo4wFCdhqgcQN6-AQFqL48euixIhc_W2Pv",
+// "twitter_bearer_token": "AAAAAAAAAAAAAAAAAAAAAHq0pQEAAAAAj1vH58xCAajkXzlPksUqFpiDthw%3D4ESlMyVAUy7rPxX0TyqGyy574JDMGryp5MoZIcvahk15k3DETw",
+// "twitter_access_token": "872769423005937665-Rb6epNGT8lSKUuFt9LroIDeOqxtPDU3",
+// "twitter_access_token_secret": "enVCtjH9Z1UWwcaokc31uwXzq67AsTncfoLDNxCcab8Tj",
 """
 
 from tweepy import OAuth1UserHandler, API
@@ -19,101 +27,55 @@ from requests_oauthlib import OAuth1Session
 from typing import Dict
 from json import load as js_load
 from requests.models import Response
-from src.base_object import VerboseObject
+from src.base_object import BaseObject
 from src.template_filler import TwitterTemplate
+from src.secret_handler import get_secrets, get_oauth1_tokens
+from src.project import Project
 
 
-class TweetPoster(VerboseObject):
+class TwitterError(Exception): pass
+
+
+class TweetPoster(BaseObject):
     """ Twitter promo poster!
     Uses the official twitter APIs """
 
-    def __init__(self, project_id, files, metadata, verbose=True):
+    def __init__(self, project:Project, verbose:bool=True) -> None:
         super().__init__(verbose)
-        self._project_id = project_id
-        self._files = files
-        self._project_metadata = metadata
-        # Option not to promo for unrevealed works, ex: challenges
-        print("\nDo you want to promo this work now?")
-        print("- Yes (hit return without typing anything)")
-        print("- No (type anything then hit return)")
-        choice = input("Your choice? ")
-        if choice:
-            self._skip_promo = True
-            return
-        else:
-            self._skip_promo = False
-            self._get_secrets()
-            self._get_sessions()
-            self._template = TwitterTemplate(metadata, verbose)
+        self._project_id = project.project_id
+        self._files = project.files
+        self._project_metadata = project.metadata
+        self._get_clients()
+        self._template = TwitterTemplate(project, verbose)
 
-    def _get_secrets(self) -> None:
-        """ Fetches API key and secret """
-        with open("settings.json", "r") as file:
-            settings = js_load(file)
-        for k in ["twitter_api_key", "twitter_api_secret"]:
-            # "twitter_access_token", "twitter_access_token_secret", "twitter_client_id",
-            # "twitter_client_secret"]:
-            assert k in settings, f"Missing {k} in settings.json"
-        self._consumer_key = settings["twitter_api_key"]
-        self._consumer_secret = settings["twitter_api_secret"]
-
-    def _get_sessions(self) -> None:
-        """ Set up tweet and media sessions """
-        # Get request token
+    def _get_clients(self) -> None:
+        """ Set up tweet and media clients """
         request_token_url = "https://api.twitter.com/oauth/request_token?oauth_callback=oob&x_auth_access_type=write"
-        oauth = OAuth1Session(self._consumer_key, client_secret=self._consumer_secret)
-
-        try:
-            fetch_response = oauth.fetch_request_token(request_token_url)
-        except ValueError:
-            assert False, "There may have been an issue with the twitter consumer_key or " +\
-                "consumer_secret you entered."
-
-        resource_owner_key = fetch_response.get("oauth_token")
-        resource_owner_secret = fetch_response.get("oauth_token_secret")
-
-        # Get authorization
-        base_authorization_url = "https://api.twitter.com/oauth/authorize"
-        authorization_url = oauth.authorization_url(base_authorization_url)
-        print("\nPlease go here and authorize: %s" % authorization_url)
-        verifier = input("Paste the PIN here: ")
-
-        # Get the access token
+        authorize_url = "https://api.twitter.com/oauth/authorize"
         access_token_url = "https://api.twitter.com/oauth/access_token"
-        oauth = OAuth1Session(
-            self._consumer_key,
-            client_secret=self._consumer_secret,
-            resource_owner_key=resource_owner_key,
-            resource_owner_secret=resource_owner_secret,
-            verifier=verifier,
-        )
 
-        oauth_tokens = oauth.fetch_access_token(access_token_url)
-        access_token = oauth_tokens["oauth_token"]
-        access_token_secret = oauth_tokens["oauth_token_secret"]
+        # Get secrets
+        consumer_key, consumer_secret = get_secrets(["twitter_api_key", "twitter_api_secret"])
+        access_token, access_token_secret = get_oauth1_tokens(consumer_key, consumer_secret,
+            request_token_url, authorize_url, access_token_url, pin=True)
 
-        # Make the request
-        oauth = OAuth1Session(
-            self._consumer_key,
-            client_secret=self._consumer_secret,
+        # Tweet client
+        self._post_session = OAuth1Session(
+            consumer_key,
+            client_secret=consumer_secret,
             resource_owner_key=access_token,
             resource_owner_secret=access_token_secret,
         )
-        self._post_session = oauth
 
-        # Media upload is done with tweepy
-        cover_auth = OAuth1UserHandler(self._consumer_key, self._consumer_secret)
+        # Media upload tweepy client
+        cover_auth = OAuth1UserHandler(consumer_key, consumer_secret)
         cover_auth.set_access_token(access_token, access_token_secret)
         self._cover_session = API(cover_auth)
             
-    
-    def tweet_promo(self) -> None:
+    def post_promo(self, is_kpop:bool=False) -> None:
         """ Posts a promo tweet using cover art image and ao3 link """
-        if self._skip_promo:
-            self._vprint("No promo yet, skipping")
-            return
-        
         self._vprint("Drafting promo tweet...", end=" ")
+        
         # Cover art
         cover_paths = self._files.cover.compressed
         cover_ids = []
@@ -122,23 +84,18 @@ class TweetPoster(VerboseObject):
             cover_ids.append(cover.media_id_string)
 
         # Making the request
-        response = self._tweet({"text": self._template.tweet, "media":{"media_ids":cover_ids}})
+        response = self._post({"text": self._template.tweet, "media":{"media_ids":cover_ids}})
         self._vprint("Promo tweet posted!")
-        print("\nIs this a kpop podfic?")
-        print("- No (hit return without typing anything)")
-        print("- Yes (type anything then hit return)")
-        choice = input("Your choice? ")
-        if choice:
+        if is_kpop:
             payload = {"text":"@kpop_podfic <3", "reply":{
                 "in_reply_to_tweet_id":response.json()["data"]["id"]}}
-            self._tweet(payload)
-            self._vprint("kpop_podfic mentionned")
+            self._post(payload)
+            self._vprint("kpop_podfic mentionned!")
 
-
-    def _tweet(self, payload:Dict) -> Response:
+    def _post(self, payload:Dict) -> Response:
         """ Tweet the given data """
         response = self._post_session.post("https://api.twitter.com/2/tweets", json=payload)
-        assert response.status_code == 201, \
-                "Request returned an error: {} {} for {}".format(
-                    response.status_code, response.text, payload)
+        if not response.status_code == 201:
+            raise TwitterError("Request returned an error: {} {} for {}".format(
+                    response.status_code, response.text, payload))
         return response
