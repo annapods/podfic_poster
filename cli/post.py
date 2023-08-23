@@ -5,9 +5,9 @@ from argparse import ArgumentParser
 from src.ao3_drafter import Ao3Poster
 from src.audio_handler import AudioHandler
 from src.gdrive_uploader import GDriveUploader
-from src.ia_uploader import IAUploader
+from src.ia_uploader import IAUploader, IAUploaderError
 from src.project import ProjectsTracker
-from cli.cli_utils import get_existing_id_and_project
+from cli.cli_utils import get_existing_id_and_project, get_ia_id
 
 
 if __name__ == "__main__":
@@ -31,7 +31,6 @@ if __name__ == "__main__":
     project.metadata.add_posting_date()
 
     # Editing audio files for names and metadata
-    # TODO !!!! project_id, files and metadata -> project
     audio = AudioHandler(project)
     audio.rename_wip_audio_files()
     audio.add_cover_art()
@@ -44,7 +43,14 @@ if __name__ == "__main__":
     gdrive_uploader.upload_cover()
 
     # Uploading to the internet archive
-    ia_uploader = IAUploader(project)
+    keep_trying, ia_id, overwrite = True, None, False
+    while keep_trying:
+        try:
+            ia_uploader = IAUploader(project, ia_id, overwrite, verbose)
+            keep_trying = False
+        except IAUploaderError as e:
+            ia_id, overwrite = get_ia_id(e)
+            print(ia_id, overwrite)
     ia_uploader.upload_audio()
     ia_uploader.upload_cover()
 

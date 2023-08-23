@@ -61,11 +61,22 @@ class ProjectsTracker(BaseObject):
     
     def get_project(self, id:str) -> Project:
         """ Returns one project based on ID """
+        # Double-check ID
         if not self.id_exists(id): raise TrackerError(id, f"ID {id} unknown for this tracker")
+        # Load project
         project = self.projects[id]
-        project.metadata._files, project.project_id._files = project.files, project.files
+        # Update file paths in case they changed since last time
+        # TODO try/except for if the folder has been moved...?
+        project.files._project_id = project.project_id
+        project.files.update_file_paths()
+        # Update metadata saved in tracker with project-specific metadata file info
+        project.metadata._files = project.files
+        project.metadata.load()
+        # TODO references don't work, because it's not pointers but values, gotta rework that structure
+        # Cross-reference the rest of metadata, files and project ID
+        project.project_id._files = project.files
+        project.metadata._project_id = project.project_id
         project.files._metadata, project.project_id._metadata = project.metadata, project.metadata
-        project.metadata._project_id, project.files._project_id = project.project_id, project.project_id
         return project
     
     def id_exists(self, id:str) -> bool:

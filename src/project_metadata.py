@@ -124,16 +124,19 @@ class ProjectMetadata(UserDict, BaseObject):
 
         if mode == "from yaml":
             # Load from saved file
-            with open(self.save_as, 'r') as file:
-                self.data.update(yaml.safe_load(file))
+            self.load()
 
         if mode == "from scratch":
             # Use placeholders
             self._save()
 
+    def load(self) -> None:
+        """ Loads the data from the yaml file """
+        with open(self.save_as, 'r') as file:
+            self.data.update(yaml.safe_load(file))
 
     def _save(self) -> None:
-        """ Saves the to the yaml file """
+        """ Saves the data to the yaml file """
         with open(self.save_as, 'w') as file:
             yaml.safe_dump(dict(self.data), file)
 
