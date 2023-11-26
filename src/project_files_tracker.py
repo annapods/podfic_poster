@@ -79,6 +79,9 @@ class FileTracker(BaseObject):
     def update_file_paths(self) -> None:
         """ Populates the known files by looking for existing files in the folder """
 
+        if not exists(self.folder):
+            raise FileNotFoundError(f"Couldn't find project folder {self.folder}")
+        
         def get_files(contains:str="", endswith:str="", folder:str=self.folder):
             """ Looks for files in the given folder which name contains and ends with the
             given strings """

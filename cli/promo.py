@@ -3,7 +3,7 @@
 
 from argparse import ArgumentParser
 from sys import exit
-from cli.cli_utils import get_existing_id_and_project
+from cli.cli_utils import get_existing_id_and_project, get_kpop_or_not
 from src.dw_poster import DWPoster
 from src.tumblr_poster import TumblrPoster
 from src.project import ProjectsTracker
@@ -30,9 +30,9 @@ if __name__ == "__main__":
     dw_poster.save_dw_post_text()
 
     # Promoting on twitter
-    # TODO if_kpop
     tweet_poster = TweetPoster(project, verbose)
-    tweet_poster.post_promo()
+    tweet_poster.post_promo(is_kpop=get_kpop_or_not())
+
 
     # Promoting on tumblr
     tumblr_poster = TumblrPoster(project, verbose)

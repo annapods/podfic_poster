@@ -1,9 +1,8 @@
 [ ] assert -> exceptions, no prints
     [ ] fandom_taxonomy
     [~] secret_handler
-[ ] cli.py -> cli/promo.py, cli/...
 [ ] Project and project tracker
-    [~] debug post and promo
+    [ ] project ID as folder name
     [ ] rework fandom_taxonomy.py
     [ ] update doc
     [ ] backlog...
@@ -25,5 +24,4 @@
     [ ] template_filler
     [ ] tumblr_poster
     [ ] tweet_poster
-[ ] rename the project
 [ ] Tweepy 4.4.0 does not have OAuth1UserHandler anymore, to update code https://docs.tweepy.org/en/v4.4.0/auth_tutorial.html#oauth-1-authentication

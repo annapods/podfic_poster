@@ -4,18 +4,18 @@ For passwords, tokens, and keys in settings.json """
 
 
 from json import load as js_load, dump as js_dump
-from typing import List, Tuple, Union
+from typing import Dict, List, Tuple, Union
 from requests_oauthlib import OAuth1Session
 
 
 class LoginError(Exception): pass
 
-def get_secrets(keys:List[str]) -> List[str]:
+def get_secrets(keys:List[str], ) -> List[str]:
     """ Fetches secrets from saved info """
     with open("settings.json", "r") as file:
         settings = js_load(file)
     for k in keys:
-        if not k in settings: raise LoginError(f"Missing {k} in settings.json")
+        if not k in settings: raise ValueError(f"Missing {k} in settings.json")
     return [settings[k] for k in keys]
 
 
@@ -27,6 +27,18 @@ def request_new_secrets(keys:List[str]) -> None:
         for k in keys:
             settings[k] = input(f"{k}? ")
     # Save the credentials and try again
+    with open("settings.json", 'w') as file:
+        js_dump(settings, file)
+
+
+def set_secrets(new_secrets:Dict[str,str]) -> None:
+    """ Saves the given secrets in memory """
+    # Load existing secrets and update them
+    with open("settings.json", "r") as file:
+        settings = js_load(file)
+        for k, v in new_secrets.items():
+            settings[k] = v
+    # Save the credentials
     with open("settings.json", 'w') as file:
         js_dump(settings, file)
 
