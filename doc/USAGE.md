@@ -48,14 +48,6 @@ And here's how to do it:
 
 In a terminal, navigate to the root directory of the program and type:
 
-Linux/Mac:
-
-```shell
-python cli/setup.py
-```
-
-Windows:
-
 ```shell
 python cli/setup.py
 ```
