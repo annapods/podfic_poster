@@ -97,16 +97,15 @@ class HTMLExtractor(BaseObject):
 
     def _get_summaries(self):
         """ Extracts and returns summaries """
-        regex = r"""<p>Summary<\/p>
-      <blockquote class="userstuff">(<p>|)([\s\S]*?)<\/p><\/blockquote>"""
+        regex = r"""<p>Summary<\/p>"""+\
+            r"""[\s\n]+<blockquote class="userstuff">(<p>|)([\s\S]*?)<\/p><\/blockquote>"""
         summaries = [re_findall(regex, work, DOTALL)[0][1] for work in self._html_works]
         return summaries
 
-
     def _get_tags(self, category):
         """ Extracts and returns tags for the given category """
-        regex = fr"""<dt>{category}:<\/dt>
-          <dd>(.*?)<\/dd>"""
+        regex = fr"""<dt>{category}:<\/dt>"""+\
+            r"""[\s\n]+<dd>(.*?)<\/dd>"""
         tag_soups = [soup for work in self._html_works for soup in re_findall(regex, work)]
         regex = r"""<a href="http:\/\/archiveofourown.org\/tags\/(.*?)">(.*?)<\/a>"""
         tags = [tag for soup in tag_soups for end_url, tag in re_findall(regex, soup)]
@@ -124,8 +123,8 @@ class HTMLExtractor(BaseObject):
 
     def _get_language(self):
         """ Extracts and returns work language """
-        regex = fr"""<dt>Language:</dt>
-        <dd>(.*?)</dd>"""
+        regex = fr"""<dt>Language:</dt>"""+\
+            r"""[\s\n]+<dd>(.*?)</dd>"""
         languages = [re_findall(regex, work)[0] for work in self._html_works]
         languages = remove_dup(languages)
         if len(languages) > 1:
