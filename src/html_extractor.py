@@ -86,12 +86,16 @@ class HTMLExtractor(BaseObject):
         """ Extracts, sums up and returns total wordcount """
         regex = """<dt>Stats:<\/dt>[\s\n]+<dd>[\s\n]+Published: [0-9-]+""" + \
             """([\s\n]+Completed: [0-9-]+)?""" + \
-            """[\s\n]+Words: ((?P<thousands>[0-9]+),|)(?P<units>[0-9]+)"""
+            """[\s\n]+Words: (((?P<millions>[0-9]+),|)(?P<thousands>[0-9]+),|)(?P<units>[0-9]+)"""
         wordcounts = []
         for work in self._html_works:
             found = re_search(regex, work)
-            if not found is None:
-                wordcounts.append(int(found.group("thousands")+found.group("units")))
+            if found is None: self._vprint("DEBUG wordcount search failed")
+            wordcount = found.group("millions") if not found.group("millions") is None else ""
+            wordcount += found.group("thousands") if not found.group("thousands") is None else ""
+            wordcount += found.group("units")
+            wordcount = int(wordcount)
+            wordcounts.append(wordcount)
         return sum(wordcounts)
 
 
@@ -104,7 +108,7 @@ class HTMLExtractor(BaseObject):
 
     def _get_tags(self, category):
         """ Extracts and returns tags for the given category """
-        regex = fr"""<dt>{category}:<\/dt>"""+\
+        regex = fr"""<dt>{category}[s]*:<\/dt>"""+\
             r"""[\s\n]+<dd>(.*?)<\/dd>"""
         tag_soups = [soup for work in self._html_works for soup in re_findall(regex, work)]
         regex = r"""<a href="http:\/\/archiveofourown.org\/tags\/(.*?)">(.*?)<\/a>"""
@@ -149,7 +153,7 @@ class HTMLExtractor(BaseObject):
             "Fandoms": self._get_tags("Fandom"),
             "Relationships": self._get_tags("Relationship"),
             "Characters": self._get_tags("Character"),
-            "Additional Tags": self._get_tags("Additional Tags")
+            "Additional Tags": self._get_tags("Additional Tag")
         }
 
         self._vprint('Done!')
