@@ -71,7 +71,7 @@ class ProjectMetadata(UserDict, BaseObject):
         "Wordcount": "__WORDCOUNT",
         "Language": "__LANGUAGE",
         "Archive Warnings": [
-            "__Choose Not To Use Archive Warnings",
+            "__Creator Chose Not To Use Archive Warnings",
             "__Graphic Depictions Of Violence",
             "__Major Character Death",
             "__No Archive Warnings Apply",
@@ -238,7 +238,7 @@ class ProjectMetadata(UserDict, BaseObject):
 
         domains = [
             ("Rating", ["Not Rated", "General Audiences", "Teen And Up Audiences", "Mature","Explicit"]),
-            ("Archive Warnings", ["Choose Not To Use Archive Warnings", "Graphic Depictions Of Violence",
+            ("Archive Warnings", ["Creator Chose Not To Use Archive Warnings", "Graphic Depictions Of Violence",
                 "Major Character Death", "No Archive Warnings Apply", "Rape/Non-Con", "Underage"]),
             ("Categories", ["F/F", "F/M", "Gen", "M/M", "Multi", "Other"])]
         

@@ -63,5 +63,5 @@ if __name__ == "__main__":
     ia_uploader.update_description()
     ia_uploader.upload_metadata()
 
-    # Saving tracker info
+    # # Saving tracker info
     tracker.update_project(id, project, overwrite=True)

@@ -142,11 +142,17 @@ class DWTemplate(Template):
 class Ao3Template(Template):
     """ Filling the ao3 template """
 
-    def __init__(self, project:Project, verbose:bool=True) -> None:
+    def __init__(self, project:Project, recompute:bool=True, verbose:bool=True) -> None:
         super().__init__(project.metadata["Language"], verbose)
         self._info = project.metadata
-        self.summary = self._get_ao3_summary()
-        self.work_text = self._get_ao3_work_text()
+        if recompute is True:
+            self.summary = self._get_ao3_summary()
+            self.work_text = self._get_ao3_work_text()
+            self._info.update_md("Summary", self.summary)
+            self._info.update_md("Work Text", self.work_text)
+        else:
+            self.summary = self._info["Summary"]
+            self.work_text = self._info["Work Text"]
 
     def _get_ao3_summary(self) -> str:
         """ Formats the ao3 summary html:

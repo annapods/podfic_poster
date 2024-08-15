@@ -85,6 +85,7 @@ class HTMLExtractor(BaseObject):
     def _get_wordcount(self):
         """ Extracts, sums up and returns total wordcount """
         regex = """<dt>Stats:<\/dt>[\s\n]+<dd>[\s\n]+Published: [0-9-]+""" + \
+            """([\s\n]+Updated: [0-9-]+)?""" + \
             """([\s\n]+Completed: [0-9-]+)?""" + \
             """[\s\n]+Words: (((?P<millions>[0-9]+),|)(?P<thousands>[0-9]+),|)(?P<units>[0-9]+)"""
         wordcounts = []
