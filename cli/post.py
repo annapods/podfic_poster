@@ -55,7 +55,7 @@ if __name__ == "__main__":
     ia_uploader.upload_cover()
 
     # Drafting ao3 post
-    ao3_poster = Ao3Poster(project, verbose)
+    ao3_poster = Ao3Poster(project, verbose=verbose, recompute=True)
     ao3_poster.draft_podfic()
 
     # Uploading project info to gdrive and ia
@@ -63,5 +63,5 @@ if __name__ == "__main__":
     ia_uploader.update_description()
     ia_uploader.upload_metadata()
 
-    # # Saving tracker info
+    # Saving tracker info
     tracker.update_project(id, project, overwrite=True)

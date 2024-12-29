@@ -25,7 +25,7 @@ class Ao3Poster(BaseObject):
     Uses ao3-poster to create an ao3 draft
      """
 
-    def __init__(self, project:Project, recompute:bool=False, verbose:bool=True) -> None:
+    def __init__(self, project:Project, recompute:bool=True, verbose:bool=True) -> None:
         super().__init__(verbose)
         self._project_id = project.project_id
         self._files = project.files

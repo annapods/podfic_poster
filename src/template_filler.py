@@ -111,7 +111,8 @@ class DWTemplate(Template):
         infos = [
                 heading_if_links("Parent Works", self._info["Parent Works"]),
                 heading_if_links(i18l("Writers"), self._info["Writers"]),
-                heading_if_links(i18l("Readers"), self._info["Creator/Pseud(s)"]),
+                heading_if_links(i18l("Readers"),
+                    self._info["Creator/Pseud(s)"]+self._info["Add co-creators?"]),
                 heading(i18l("Context")) + self._info["Occasion"],
                 heading(i18l("Fandoms")) + ', '.join(self._info['Fandoms']),
                 heading(i18l("Pairings")) + ', '.join(self._info['Relationships']),
@@ -395,7 +396,8 @@ class TumblrTemplate(Template):
         infos = [
                 heading_if_links(i18l("Parent Works"), self._info["Parent Works"]),
                 heading_if_links(i18l("Writers"), self._info["Writers"]),
-                heading_if_links(i18l("Readers"), self._info["Creator/Pseud(s)"]),
+                heading_if_links(i18l("Readers"),
+                    self._info["Creator/Pseud(s)"]+self._info["Add co-creators?"]),
                 heading(i18l("Rating")) + self._info['Rating'],
                 heading(i18l("Audio length (incl. potential endnotes)")) \
                     + self._info['Audio Length'],

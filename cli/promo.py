@@ -29,14 +29,13 @@ if __name__ == "__main__":
     dw_poster = DWPoster(project, verbose)
     dw_poster.save_dw_post_text()
 
-    # Promoting on twitter
-    tweet_poster = TweetPoster(project, verbose)
-    tweet_poster.post_promo(is_kpop=get_kpop_or_not())
-
+    # # Promoting on twitter
+    # tweet_poster = TweetPoster(project, verbose)
+    # tweet_poster.post_promo(is_kpop=get_kpop_or_not())
 
     # Promoting on tumblr
     tumblr_poster = TumblrPoster(project, verbose)
     tumblr_poster.post_promo()
 
-    # Promoting on Mastodon
+    # Promoting on Mastodon and/or bsky
     # TODO
