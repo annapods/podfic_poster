@@ -85,28 +85,32 @@ class HTMLExtractor(BaseObject):
     def _get_wordcount(self):
         """ Extracts, sums up and returns total wordcount """
         regex = """<dt>Stats:<\/dt>[\s\n]+<dd>[\s\n]+Published: [0-9-]+""" + \
+            """([\s\n]+Updated: [0-9-]+)?""" + \
             """([\s\n]+Completed: [0-9-]+)?""" + \
-            """[\s\n]+Words: ((?P<thousands>[0-9]+),|)(?P<units>[0-9]+)"""
+            """[\s\n]+Words: (((?P<millions>[0-9]+),|)(?P<thousands>[0-9]+),|)(?P<units>[0-9]+)"""
         wordcounts = []
         for work in self._html_works:
             found = re_search(regex, work)
-            if not found is None:
-                wordcounts.append(int(found.group("thousands")+found.group("units")))
+            if found is None: self._vprint("DEBUG wordcount search failed")
+            wordcount = found.group("millions") if not found.group("millions") is None else ""
+            wordcount += found.group("thousands") if not found.group("thousands") is None else ""
+            wordcount += found.group("units")
+            wordcount = int(wordcount)
+            wordcounts.append(wordcount)
         return sum(wordcounts)
 
 
     def _get_summaries(self):
         """ Extracts and returns summaries """
-        regex = r"""<p>Summary<\/p>
-      <blockquote class="userstuff">(<p>|)([\s\S]*?)<\/p><\/blockquote>"""
+        regex = r"""<p>Summary<\/p>"""+\
+            r"""[\s\n]+<blockquote class="userstuff">(<p>|)([\s\S]*?)<\/p><\/blockquote>"""
         summaries = [re_findall(regex, work, DOTALL)[0][1] for work in self._html_works]
         return summaries
 
-
     def _get_tags(self, category):
         """ Extracts and returns tags for the given category """
-        regex = fr"""<dt>{category}:<\/dt>
-          <dd>(.*?)<\/dd>"""
+        regex = fr"""<dt>{category}[s]*:<\/dt>"""+\
+            r"""[\s\n]+<dd>(.*?)<\/dd>"""
         tag_soups = [soup for work in self._html_works for soup in re_findall(regex, work)]
         regex = r"""<a href="http:\/\/archiveofourown.org\/tags\/(.*?)">(.*?)<\/a>"""
         tags = [tag for soup in tag_soups for end_url, tag in re_findall(regex, soup)]
@@ -124,8 +128,8 @@ class HTMLExtractor(BaseObject):
 
     def _get_language(self):
         """ Extracts and returns work language """
-        regex = fr"""<dt>Language:</dt>
-        <dd>(.*?)</dd>"""
+        regex = fr"""<dt>Language:</dt>"""+\
+            r"""[\s\n]+<dd>(.*?)</dd>"""
         languages = [re_findall(regex, work)[0] for work in self._html_works]
         languages = remove_dup(languages)
         if len(languages) > 1:
@@ -150,7 +154,7 @@ class HTMLExtractor(BaseObject):
             "Fandoms": self._get_tags("Fandom"),
             "Relationships": self._get_tags("Relationship"),
             "Characters": self._get_tags("Character"),
-            "Additional Tags": self._get_tags("Additional Tags")
+            "Additional Tags": self._get_tags("Additional Tag")
         }
 
         self._vprint('Done!')

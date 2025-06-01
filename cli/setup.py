@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(prog="Podfic project setup!", description="Use once all the files are ready")
     parser.add_argument('--quiet', '-q', help="quiet mode",
         action='store_true', required=False)
-    parser.add_argument('--link', help="link to the ao3 work", default=None)
+    parser.add_argument('--link', help="link to the ao3 work for download", default=None)
     parser.add_argument('--fandom', help="abreviation of the fandom " + \
         "(like at the start of the mp3 file name)", default=None)
     parser.add_argument('--title', help="title of the work", default=None)
@@ -56,8 +56,12 @@ if __name__ == "__main__":
     link = args.link if args.link else input(
         "Link to parent work(s), input nothing to skip and not overwrite any metadata: ")
     link_given = bool(args.link)
-    project = Project(raw_title, fandom_abr, link, download_parent=link_given, reset_metadata=link_given,
-        verbose=verbose)
+    try:
+        project = Project(raw_title, fandom_abr, link, download_parent=link_given, reset_metadata=link_given,
+            verbose=verbose)
+    except FileNotFoundError:
+        project = Project(raw_title, fandom_abr, link, download_parent=link_given, reset_metadata=True,
+            verbose=verbose)
     id = get_id(project.project_id.get_generic_id(), tracker)
     tracker.update_project(id, project, overwrite=True)
     print("\nProject ID:", id)

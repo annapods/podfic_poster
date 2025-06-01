@@ -56,9 +56,6 @@ class TumblrPoster(BaseObject):
         
         # Making the request
         blog = get_secrets(["tumblr_blog_name"])[0]
-        print(blog)
-        response = self._client.create_text(blog, state="queue", format="html",
-            title="test", body="test")
         response = self._client.create_text(blog, state="queue", tags=self._template.tags, format="html",
             title=self._template.title, body=self._template.body)
         

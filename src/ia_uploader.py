@@ -11,7 +11,11 @@ from src.project import Project
 from src.project_metadata import not_placeholder_text, PlaceholderValue
 
 
-class IAUploaderError(Exception): pass
+class IAUploaderError(Exception):
+    def __init__(self, id:str, message:str) -> None:
+        self.id = id
+        self.message = message
+        super().__init__(message)
 
 
 class IAUploader(BaseObject):
@@ -24,17 +28,17 @@ class IAUploader(BaseObject):
     - upload_info
     - update_descrition """
 
-    def __init__(self, project:Project, ia_id:Optional[str]=None, verbose:bool=True) -> None:
+    def __init__(self, project:Project, ia_id:Optional[str]=None, overwrite:bool=False,
+        verbose:bool=True) -> None:
         super().__init__(verbose)
         self._project_id = project.project_id
         self._files = project.files
         self._project_metadata = project.metadata
-        if ia_id and not IAUploader.identifier_available(ia_id):
-            raise IAUploaderError(f"IA identifier unavailable: {ia_id}")
-        if ia_id and IAUploader.identifier_valid(ia_id):
-            self._identifier = ia_id
-        else:
-            self._identifier = self._generate_new_identifier()
+        self._identifier = ia_id if ia_id else self._generate_identifier()
+        if (not IAUploader.identifier_available(self._identifier)) and (not overwrite):
+            raise IAUploaderError(self._identifier, f"IA identifier already exists: {self._identifier}")
+        if not IAUploader.identifier_valid(self._identifier):
+            raise IAUploaderError(self._identifier, f"IA identifier invalid: {self._identifier}")
         self._project_metadata.update_md("IA Link", f"https://archive.org/details/{self._identifier}")
         self._ia_metadata = {
             'collection': 'opensource_audio',
@@ -57,11 +61,11 @@ class IAUploader(BaseObject):
         """ Checks/returns the validity of the given item identifier """
         return len(identifier) > 5 \
             and len(identifier) < 101 \
-            and re.sub(r'[\W]', '', identifier.lower()) == identifier
+            and re.sub(r'[^a-z0-9-]', '', identifier.lower()) == identifier
 
 
-    def _generate_new_identifier(self):
-        """ Generates and returns an available ia item identifier based on fandom and work title """
+    def _generate_identifier(self):
+        """ Generates and returns a new ia item identifier based on fandom and work title """
     
         def safe_string(string:str) -> str:
             """ Lower, delete anything not ASCII """
@@ -74,21 +78,9 @@ class IAUploader(BaseObject):
         identifier = f"{fandom}-{title}"
         while len(identifier) <= 5:
             identifier += title
-        
-        # Get available identifier
-        while not IAUploader.identifier_available(identifier):
-            identifier += title
 
         # Probably not needed, but crop to max limit
         identifier = identifier[:100]
-
-        # Check availability and validity
-        if not IAUploader.identifier_available(identifier):
-            raise IAUploaderError("Please generate the IA identifier yourself, automatically "+\
-                f"generated identifier {identifier} is unavailable")
-        if not IAUploader.identifier_valid(identifier):
-            raise IAUploaderError("Please generate the IA identifier yourself, automatically "+\
-                f"generated identifier {identifier} is invalid")
 
         return  identifier
 

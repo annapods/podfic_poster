@@ -15,7 +15,7 @@ from json import load as js_load
 from requests.models import Response
 from src.base_object import BaseObject
 from src.template_filler import TwitterTemplate
-from src.secret_handler import get_secrets, get_oauth1_tokens
+from src.secret_handler import get_secrets, get_oauth1_tokens, set_secrets
 from src.project import Project
 
 
@@ -33,6 +33,8 @@ class TweetPoster(BaseObject):
         self._project_metadata = project.metadata
         self._get_clients()
         self._template = TwitterTemplate(project, verbose)
+        try: self._last_promo_tweet = get_secrets(["twitter_last_promo"])[0]
+        except ValueError: self._last_promo_tweet = None
 
     def _get_clients(self) -> None:
         """ Set up tweet and media clients """
@@ -69,14 +71,20 @@ class TweetPoster(BaseObject):
             cover = self._cover_session.media_upload(filename=c)
             cover_ids.append(cover.media_id_string)
 
-        # Making the request
-        response = self._post({"text": self._template.tweet, "media":{"media_ids":cover_ids}})
+        # Promo tweet
+        payload = {"text": self._template.tweet, "media":{"media_ids":cover_ids}}
+        if self._last_promo_tweet: payload["reply"] = {'in_reply_to_tweet_id': self._last_promo_tweet}
+        response = self._post(payload)
         self._vprint("Promo tweet posted!")
+        # Saving new tweet as last promo tweet
+        self._last_promo_tweet = response.json()["data"]["id"]
+        set_secrets({"twitter_last_promo": self._last_promo_tweet})
+        # @ promo account
         if is_kpop:
             payload = {"text":"@kpop_podfic <3", "reply":{
-                "in_reply_to_tweet_id":response.json()["data"]["id"]}}
+                "in_reply_to_tweet_id":self._last_promo_tweet}}
             self._post(payload)
-            self._vprint("kpop_podfic mentionned!")
+            self._vprint("Kpop podfic account mentioned!")
 
     def _post(self, payload:Dict) -> Response:
         """ Tweet the given data """

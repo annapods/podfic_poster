@@ -59,13 +59,24 @@ class ProjectsTracker(BaseObject):
                 frozen = js_load(file)
             self.projects = decode(frozen)
     
-    def get_project(self, id:str) -> Project:
+    def get_project(self, id:str, update_with_local_info:bool=True) -> Project:
         """ Returns one project based on ID """
+        # Double-check ID
         if not self.id_exists(id): raise TrackerError(id, f"ID {id} unknown for this tracker")
+        # Load project
         project = self.projects[id]
-        project.metadata._files, project.project_id._files = project.files, project.files
+        
+        # If asked, update file paths in case they changed since last time
+        project.files._project_id = project.project_id
+        if update_with_local_info: project.files.update_file_paths()
+        # If asked, update metadata saved in tracker with project-specific metadata file info
+        project.metadata._files = project.files
+        if update_with_local_info: project.metadata.load()
+        # TODO references don't work, because it's not pointers but values, gotta rework that structure
+        # Cross-reference the rest of metadata, files and project ID
+        project.project_id._files = project.files
+        project.metadata._project_id = project.project_id
         project.files._metadata, project.project_id._metadata = project.metadata, project.metadata
-        project.metadata._project_id, project.files._project_id = project.project_id, project.project_id
         return project
     
     def id_exists(self, id:str) -> bool:

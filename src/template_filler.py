@@ -111,7 +111,8 @@ class DWTemplate(Template):
         infos = [
                 heading_if_links("Parent Works", self._info["Parent Works"]),
                 heading_if_links(i18l("Writers"), self._info["Writers"]),
-                heading_if_links(i18l("Readers"), self._info["Creator/Pseud(s)"]),
+                heading_if_links(i18l("Readers"),
+                    self._info["Creator/Pseud(s)"]+self._info["Add co-creators?"]),
                 heading(i18l("Context")) + self._info["Occasion"],
                 heading(i18l("Fandoms")) + ', '.join(self._info['Fandoms']),
                 heading(i18l("Pairings")) + ', '.join(self._info['Relationships']),
@@ -142,11 +143,17 @@ class DWTemplate(Template):
 class Ao3Template(Template):
     """ Filling the ao3 template """
 
-    def __init__(self, project:Project, verbose:bool=True) -> None:
+    def __init__(self, project:Project, recompute:bool=True, verbose:bool=True) -> None:
         super().__init__(project.metadata["Language"], verbose)
         self._info = project.metadata
-        self.summary = self._get_ao3_summary()
-        self.work_text = self._get_ao3_work_text()
+        if recompute is True:
+            self.summary = self._get_ao3_summary()
+            self.work_text = self._get_ao3_work_text()
+            self._info.update_md("Summary", self.summary)
+            self._info.update_md("Work Text", self.work_text)
+        else:
+            self.summary = self._info["Summary"]
+            self.work_text = self._info["Work Text"]
 
     def _get_ao3_summary(self) -> str:
         """ Formats the ao3 summary html:
@@ -156,10 +163,7 @@ class Ao3Template(Template):
         # Check if summary is the parent work's or if it has been edited for the podfic already
         # This is (clumsily) done using the audio length
         if self._info["Audio Length"] not in summary:
-            # Couldn't figure out how to make it actually have a newline from the get go otherwise
-            summary += f"""\n
-
-\n{self._info["Audio Length"]}"""
+            summary += f"""</p><p>{self._info["Audio Length"]}"""
             links = remove_placeholder_links(self._info["Writers"])
             if links:
                 summary += ' :: '
@@ -352,13 +356,12 @@ class TwitterTemplate(Template):
         super().__init__(project.metadata["Language"], verbose)
         self._info = project.metadata
         self._project_id = project.project_id
-        self.tweet = self._get_tweet_text(project.project_id.full_raw_title)
+        self.tweet = self._get_tweet_text()
     
-    def _get_tweet_text(self, full_title:str) -> None:
+    def _get_tweet_text(self) -> None:
         """ TODO rewrite """
         tweet = i18l('NEW ')+self._info["Work Type"].upper()
         tweet += "\n"+self._project_id.full_raw_title
-        tweet += "\n- "+i18l("Fandom")+i18l(":")+" "+Template.get_enum(self._info["Fandoms"])
         tweet += "\n- "+i18l("Length")+i18l(":")+" "+self._info["Audio Length"]
         tweet += "\n- "+i18l("Rating")+i18l(":")+" "+self._info["Rating"]
         ao3_id = self._info["Podfic Link"].split("/")[-2]
@@ -366,13 +369,47 @@ class TwitterTemplate(Template):
         return tweet
 
 
-class TumblrTemplate(DWTemplate):
+class TumblrTemplate(Template):
     """ Filling the tumblr promo template """
     def __init__(self, project:Project, verbose:bool=True) -> None:
-        # super().__init__(metadata["Language"], verbose)
-        super().__init__(project, verbose)
+        super().__init__(project.metadata["Language"], verbose)
         self._info = project.metadata
         self._project_id = project.project_id
-        self.body = self._get_post()  # For now, same formatting as DW
+        self.body = self._get_body()  # For now, same formatting as DW
         self.title = "["+self._info['Work Type']+"] "+project.project_id.raw_title
         self.tags = ["podfic"]  # apparently, ["tag1,tag2"], not ["tag1", "tag2"]
+    
+    def _get_body(self) -> str:
+        def heading(header:str) -> str:
+            """ Formats a tumblr info header """
+            return self.add_tag("strong", (header+i18l(':')))+" "
+        
+        def heading_if_links(head:str, links:List[Tuple[str,str]], ending:str="") -> str:
+            """ Creates the header + content string if the link isn't a placeholder """
+            links = remove_placeholder_links(links)
+            if links:
+                return heading(head) + self.get_enum_links(links) + ending
+
+        cover = self.get_img(self._info["IA Cover Link"],
+            img_alt_text=i18l("Cover art."), no_img_alt_text=i18l("Cover art welcome."))
+
+        infos = [
+                heading_if_links(i18l("Parent Works"), self._info["Parent Works"]),
+                heading_if_links(i18l("Writers"), self._info["Writers"]),
+                heading_if_links(i18l("Readers"),
+                    self._info["Creator/Pseud(s)"]+self._info["Add co-creators?"]),
+                heading(i18l("Rating")) + self._info['Rating'],
+                heading(i18l("Audio length (incl. potential endnotes)")) \
+                    + self._info['Audio Length'],
+                heading(i18l("Summary")) + self._info['Summary']
+            ]
+        infos = [item for item in infos if item]
+        info = self.add_tag("p", "<br>".join(infos))
+
+        links = self.add_tag("p",
+            heading_if_links(i18l("Link to podfics"), [
+                (self._info["Podfic Link"], "ao3")
+        ]))
+
+        post = "\n\n".join([cover, info, links])
+        return post

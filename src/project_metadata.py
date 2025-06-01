@@ -71,7 +71,7 @@ class ProjectMetadata(UserDict, BaseObject):
         "Wordcount": "__WORDCOUNT",
         "Language": "__LANGUAGE",
         "Archive Warnings": [
-            "__Choose Not To Use Archive Warnings",
+            "__Creator Chose Not To Use Archive Warnings",
             "__Graphic Depictions Of Violence",
             "__Major Character Death",
             "__No Archive Warnings Apply",
@@ -124,16 +124,19 @@ class ProjectMetadata(UserDict, BaseObject):
 
         if mode == "from yaml":
             # Load from saved file
-            with open(self.save_as, 'r') as file:
-                self.data.update(yaml.safe_load(file))
+            self.load()
 
         if mode == "from scratch":
             # Use placeholders
             self._save()
 
+    def load(self) -> None:
+        """ Loads the data from the yaml file """
+        with open(self.save_as, 'r') as file:
+            self.data.update(yaml.safe_load(file))
 
     def _save(self) -> None:
-        """ Saves the to the yaml file """
+        """ Saves the data to the yaml file """
         with open(self.save_as, 'w') as file:
             yaml.safe_dump(dict(self.data), file)
 
@@ -235,7 +238,7 @@ class ProjectMetadata(UserDict, BaseObject):
 
         domains = [
             ("Rating", ["Not Rated", "General Audiences", "Teen And Up Audiences", "Mature","Explicit"]),
-            ("Archive Warnings", ["Choose Not To Use Archive Warnings", "Graphic Depictions Of Violence",
+            ("Archive Warnings", ["Creator Chose Not To Use Archive Warnings", "Graphic Depictions Of Violence",
                 "Major Character Death", "No Archive Warnings Apply", "Rape/Non-Con", "Underage"]),
             ("Categories", ["F/F", "F/M", "Gen", "M/M", "Multi", "Other"])]
         

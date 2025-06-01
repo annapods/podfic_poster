@@ -25,12 +25,12 @@ class Ao3Poster(BaseObject):
     Uses ao3-poster to create an ao3 draft
      """
 
-    def __init__(self, project:Project, verbose:bool=True) -> None:
+    def __init__(self, project:Project, recompute:bool=True, verbose:bool=True) -> None:
         super().__init__(verbose)
         self._project_id = project.project_id
         self._files = project.files
         self._metadata = project.metadata
-        self._template = Ao3Template(project, verbose)
+        self._template = Ao3Template(project, recompute, verbose)
         self._get_session()
         self._get_new_work_codes_and_auth_token()
 
@@ -156,7 +156,7 @@ class Ao3Poster(BaseObject):
             errors = []
             soup = BeautifulSoup(response.content, 'lxml')
             error = soup.find(id='error')
-            if error: raise Ao3DrafterError(f"Errors while posting: {errors}")
+            if error: raise Ao3DrafterError(f"Errors while posting: {errors}, {error}")
             new_work_form = soup.find('form', id='new_work')
             if new_work_form:
                 invalid_pseuds = new_work_form.find('h4', text=re_compile(r'These pseuds are invalid:'))
