@@ -20,6 +20,7 @@ class GDriveUploader(BaseObject):
     Automatically creates the folder (if not yet existing) and saves a shareable link
     to the work info file on creation.
 
+    - init_project(project)
     - upload_audio()
     - upload_cover()
     - upload_info()
@@ -28,21 +29,21 @@ class GDriveUploader(BaseObject):
     # The name of the folder with all the podfic subfolders
     podfic_folder_path = "podfic files"
 
-    def __init__(self, project:Project, verbose:bool=True) -> None:
+    def __init__(self, verbose:bool=True) -> None:
         super().__init__(verbose)
-        self._project_id = project.project_id
-        self._files = project.files
-        self._metadata = project.metadata
-
         # Connection to API
         gauth = GoogleAuth()
         gauth.LocalWebserverAuth()
         self._drive = GoogleDrive(gauth)
-
+    
+    def load_project(self, project:Project) -> None:
+        """ Loads a project """
+        self._project_id = project.project_id
+        self._files = project.files
+        self._metadata = project.metadata
         # Getting shareable folder
         self._get_podfic_folder()
         self._set_up_permission()
-
         # Saving link to folder in work info
         self._metadata.update_md("GDrive Link", self.link)
 

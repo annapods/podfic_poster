@@ -3,8 +3,9 @@
 
 from typing import Optional
 from os.path import exists
-from jsonpickle import encode, decode
-from json import load as js_load, dump as js_dump
+from jsonpickle import encode, decode, loads as jsp_loads
+from jsonpickle.unpickler import Unpickler
+from json import load as js_load, dump as js_dump, loads as js_loads
 from src.base_object import BaseObject
 from src.html_downloader import HTMLDownloader
 from src.project_id import ProjectID
@@ -57,7 +58,13 @@ class ProjectsTracker(BaseObject):
         else:
             with open(tracker_path, "r") as file:
                 frozen = js_load(file)
-            self.projects = decode(frozen)
+            # self.projects = decode(frozen)
+            # https://github.com/jsonpickle/jsonpickle/issues/246#issuecomment-590015187
+            # https://github.com/jsonpickle/jsonpickle/commit/eb505c02d5721c1b67cef523c20515b559075d70
+            unpickler = Unpickler()
+            jsp_loads(frozen, context=unpickler, on_missing="warn")
+            self.projects = js_loads(frozen, object_hook=lambda x: unpickler.restore(x, reset=True))
+            for project in self.projects: pass
     
     def get_project(self, id:str, update_with_local_info:bool=True) -> Project:
         """ Returns one project based on ID """
@@ -91,7 +98,7 @@ class ProjectsTracker(BaseObject):
     
     def save(self) -> None:
         """ Saves the tracker """
-        frozen = encode(self.projects)
+        frozen = encode(self.projects, indent=4, make_refs=False)
         with open(self.tracker_path, 'w+') as file:
             js_dump(frozen, file)
     

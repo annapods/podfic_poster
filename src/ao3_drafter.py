@@ -4,17 +4,43 @@
 
 from json import load as js_load, dump as js_dump
 from re import compile as re_compile
+from time import sleep
 from bs4 import SoupStrainer, BeautifulSoup
 from requests import Response, Session
-from typing import Optional, List, Tuple, Dict
+from typing import Callable, Optional, List, Tuple, Dict
 from src.template_filler import Ao3Template
 from src.base_object import BaseObject, DebugError
-from src.project_metadata import not_placeholder_link, not_placeholder_text
+from src.project_metadata import placeholder_link, placeholder_text
 from src.project import Project
 
 
 AO3_URL = 'https://archiveofourown.org/'
 LOGIN_URL = AO3_URL+'users/login'
+
+
+def ao3_draft(
+        project:Project, max_ao3_drafting_attempts:int,
+        handle_errors:Callable[[Exception, int], None],
+        cooldown:int, verbose:bool) -> None:
+    """ Draft ao3 post, trying several times in case of SSL handshake error """
+    for i in range(max_ao3_drafting_attempts):
+        if drafted(project): break
+        try:
+            ao3_poster = Ao3Poster(project, verbose=verbose, recompute=True)
+            while not drafted(project):
+                try: ao3_poster.draft_podfic()
+                except Exception as e:
+                    handle_errors(e, int(cooldown/3))
+                    sleep(int(cooldown/3))
+        except Exception as e:
+            handle_errors(e, cooldown)
+            sleep(cooldown)
+
+
+works_page = "https://archiveofourown.org/works"
+def drafted(project:Project) -> bool:
+    link = project.metadata.get("Podfic Link")
+    return link != works_page and works_page in link
 
 
 class Ao3DrafterError(Exception): pass
@@ -45,9 +71,19 @@ class Ao3Poster(BaseObject):
     @staticmethod
     def _get_authenticity_token(text:str, form_id:str) -> str:
         """ Extracts the authenticity token from the page """
+        if text == None or text == "": raise ValueError(f"No text")
         strainer = SoupStrainer(id=form_id)
         soup = BeautifulSoup(text, 'lxml', parse_only=strainer)
-        return soup.find(attrs={'name': 'authenticity_token'})['value']
+        if soup is None:
+            print("DEBUG", text)
+            raise Ao3DrafterError("???")
+        found = soup.find(attrs={'name': 'authenticity_token'})
+        if found == None or found == "":
+            print("DEBUG !! soup:", found, end=", ")
+            if "525: SSL handshake failed" in text:
+                raise Ao3DrafterError("525: SSL handshake failed")
+            else: print(f"DEBUG ! type soup={type(soup)}, soup={soup}->{soup.prettify()}, text={text}")
+        return found['value']
 
     @staticmethod
     def _get_languages(text:str) -> Dict[str,str]:
@@ -228,7 +264,7 @@ class Ao3Poster(BaseObject):
 
         # Co-creator pseuds
         post_data.append(("pseud[byline]",
-            ",".join([pseud for _, pseud in metadata["Add co-creators?"] if not_placeholder_text(pseud)])))
+            ",".join([pseud for _, pseud in metadata["Add co-creators?"] if not placeholder_text(pseud)])))
 
         # Language
         if metadata["Language"] not in self.language_codes:
@@ -238,7 +274,7 @@ class Ao3Poster(BaseObject):
 
         # Parent works
         for i, (link, title) in enumerate(metadata["Parent Works"]):
-            if not_placeholder_link(link, title):
+            if not placeholder_link(link, title):
                 post_data.append((f"work[parent_work_relationships_attributes][{i}][url]", link))
 
         # Archive lock for RPF

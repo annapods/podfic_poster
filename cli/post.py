@@ -2,12 +2,74 @@
 """ Command line program to post a podfic """
 
 from argparse import ArgumentParser
-from src.ao3_drafter import Ao3Poster
+from traceback import print_exc
+from src.project_metadata import placeholder_text
+from src.ao3_drafter import ao3_draft, drafted
 from src.audio_handler import AudioHandler
 from src.gdrive_uploader import GDriveUploader
 from src.ia_uploader import IAUploader, IAUploaderError
-from src.project import ProjectsTracker
+from src.project import Project, ProjectsTracker
 from cli.cli_utils import get_existing_id_and_project, get_ia_id
+
+
+def handle_ao3_draft_errors(e:Exception, cooldown:int=60) -> None:
+    """ Prints details if not SSL handshake error, sleeps for cooldown seconds """
+    if "525" in str(e): print(f"SSL ERROR ENCOUNTERED - will try again in {cooldown}")
+    else:
+        print(f"ERROR ENCOUNTERED - will try again in {cooldown} - {e}")
+        print_exc()
+
+def load_ia_project(ia:IAUploader, project:Project, force_ia_id:bool) -> None:
+    try: ia.load_project(project, None, force_ia_id)
+    except IAUploaderError as e:
+        ia_id, overwrite = get_ia_id(e)
+        ia.load_project(project, ia_id, overwrite)
+
+def post(
+        tracker:ProjectsTracker, project:Project, gd:GDriveUploader,
+        ia:IAUploader, audio:AudioHandler,
+        max_ao3_drafting_attempts:int, downtime:int, force_ia_id, verbose:bool) -> None:
+    
+    # Adding posting date to metadata
+    project.metadata.add_posting_date()
+
+    # Editing audio files for names and metadata
+    audio.load_project(project)
+    audio.rename_wip_audio_files()
+    audio.add_cover_art()
+    audio.update_metadata()
+    audio.save_audio_length()
+
+    # Uploading to gdrive
+    if placeholder_text(project.metadata.get("GDrive Link")):
+        gd.load_project(project)
+        gd.upload_audio()
+        gd.upload_cover()
+    tracker.update_project(id, project, overwrite=True)
+
+    # Uploading to the internet archive
+    if placeholder_text(project.metadata.get("IA Link")):
+        load_ia_project(ia, project, force_ia_id)
+        ia.upload_compressed_audio()
+        ia.upload_raw_audio()
+        ia.upload_cover()
+    tracker.update_project(id, project, overwrite=True)
+
+    # Drafting ao3 post, trying several times in case of SSL handshake error
+    if not drafted(project):
+        ao3_draft(
+            project, max_ao3_drafting_attempts,
+            handle_ao3_draft_errors, downtime, verbose)
+        tracker.update_project(id, project, overwrite=True)
+
+    # Uploading project info to gdrive and ia
+    if drafted(project):
+        gd.load_project(project)
+        gd.upload_metadata()
+        load_ia_project(ia, project, force_ia_id)
+        ia.update_description()
+        ia.upload_metadata()
+
 
 
 if __name__ == "__main__":
@@ -20,48 +82,21 @@ if __name__ == "__main__":
     parser.add_argument('--title', help="title of the work", default=None)
     parser.add_argument('--id', help="id of the project", default=None)
     args = parser.parse_args()
-
     verbose = not args.quiet
+
+
     tracker = ProjectsTracker(tracker_path="/home/anna/Music/tracker.json", verbose=verbose)
     id, project = get_existing_id_and_project(tracker, args.id, args.fandom, args.title, verbose)
     tracker.update_project(id, project, overwrite=True)
-    print("\nProject ID:", id)
 
-    # Adding posting date to metadata
-    project.metadata.add_posting_date()
+    gd = GDriveUploader()
+    ia = IAUploader()
+    audio = AudioHandler()
 
-    # Editing audio files for names and metadata
-    audio = AudioHandler(project)
-    audio.rename_wip_audio_files()
-    audio.add_cover_art()
-    audio.update_metadata()
-    audio.save_audio_length()
+    max_ao3_drafting_attempts = 15
+    downtime = 60
 
-    # Uploading to gdrive
-    gdrive_uploader = GDriveUploader(project)
-    gdrive_uploader.upload_audio()
-    gdrive_uploader.upload_cover()
-
-    # Uploading to the internet archive
-    keep_trying, ia_id, overwrite = True, None, False
-    while keep_trying:
-        try:
-            ia_uploader = IAUploader(project, ia_id, overwrite, verbose)
-            keep_trying = False
-        except IAUploaderError as e:
-            ia_id, overwrite = get_ia_id(e)
-            print(ia_id, overwrite)
-    ia_uploader.upload_audio()
-    ia_uploader.upload_cover()
-
-    # Drafting ao3 post
-    ao3_poster = Ao3Poster(project, verbose=verbose, recompute=True)
-    ao3_poster.draft_podfic()
-
-    # Uploading project info to gdrive and ia
-    gdrive_uploader.upload_metadata()
-    ia_uploader.update_description()
-    ia_uploader.upload_metadata()
-
+    print("\Posting", id)
+    post(project, gd, ia, audio, max_ao3_drafting_attempts, downtime, False, verbose)
     # Saving tracker info
     tracker.update_project(id, project, overwrite=True)

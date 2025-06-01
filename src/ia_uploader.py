@@ -8,7 +8,7 @@ from internetarchive import upload, get_item
 from typing import Optional
 from src.base_object import BaseObject
 from src.project import Project
-from src.project_metadata import not_placeholder_text, PlaceholderValue
+from src.project_metadata import placeholder_text, PlaceholderValue
 
 
 class IAUploaderError(Exception):
@@ -28,18 +28,21 @@ class IAUploader(BaseObject):
     - upload_info
     - update_descrition """
 
-    def __init__(self, project:Project, ia_id:Optional[str]=None, overwrite:bool=False,
-        verbose:bool=True) -> None:
+    def __init__(self, verbose:bool=True) -> None:
         super().__init__(verbose)
+    
+    def load_project(self, project:Project, ia_id:Optional[str]=None, overwrite:bool=False) -> None:
         self._project_id = project.project_id
         self._files = project.files
         self._project_metadata = project.metadata
+
         self._identifier = ia_id if ia_id else self._generate_identifier()
         if (not IAUploader.identifier_available(self._identifier)) and (not overwrite):
             raise IAUploaderError(self._identifier, f"IA identifier already exists: {self._identifier}")
         if not IAUploader.identifier_valid(self._identifier):
             raise IAUploaderError(self._identifier, f"IA identifier invalid: {self._identifier}")
         self._project_metadata.update_md("IA Link", f"https://archive.org/details/{self._identifier}")
+        
         self._ia_metadata = {
             'collection': 'opensource_audio',
             'title': self._project_id.raw_title,
@@ -97,16 +100,12 @@ class IAUploader(BaseObject):
         self._vprint(f'{request[0].status_code} - {file_path}')
 
 
-    def upload_audio(self):
-        """ Uploads audio files (mp3 and wav) to the ia item
+    def upload_compressed_audio(self) -> None:
+        """ Uploads compressed audio files (mp3) to the ia item
         Also saves the streaming links to the work info """
-        self._vprint("Uploading podfic files to ia...")
-
-        # File uploads, both mp3s and wavs
-        for path in self._files.audio.compressed.formatted + \
-            self._files.audio.raw.formatted:
+        self._vprint("Uploading compressed podfic files to ia...")
+        for path in self._files.audio.compressed.formatted:
             self._upload_file(path)
-        # TODO In case there is no wav file, but maybe a zipped audacity file or such
 
         # Adding the mp3 links to the metadata for ao3 streaming
         links = ["https://archive.org/download/" \
@@ -114,6 +113,14 @@ class IAUploader(BaseObject):
             for path in self._files.audio.compressed.formatted]
         self._project_metadata.update_md("IA Streaming Links", links)
         self._vprint("Done!\n")
+
+
+    def upload_raw_audio(self) -> None:
+        """ Uploads raw audio files (wav) to the ia item """
+        self._vprint("Uploading raw podfic files to ia...")
+        for path in self._files.audio.raw.formatted:
+            self._upload_file(path)
+        # TODO In case there is no wav file, but maybe a zipped audacity file or such
 
 
     def upload_cover(self):
@@ -142,7 +149,7 @@ class IAUploader(BaseObject):
         """ Updates item description with ao3 link """
         self._vprint("Adding podfic link to ia...", end=" ")
 
-        if not not_placeholder_text(self._project_metadata["Podfic Link"]):
+        if placeholder_text(self._project_metadata["Podfic Link"]):
             raise PlaceholderValue("Podfic Link", self._project_metadata["Podfic Link"])
 
         description = '<strong>Link to podfic:</strong> ' \

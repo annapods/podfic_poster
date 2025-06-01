@@ -148,14 +148,20 @@ class HTMLExtractor(BaseObject):
             "Wordcount": self._get_wordcount(),
             "Language": self._get_language(),
 
-            "Archive Warnings": self._get_tags("Archive Warning"),
+            "Archive Warnings": self._get_tags("Archive Warning")+self._get_tags("Archive Warnings"),
             "Rating": self._get_tags("Rating")[0],
-            "Categories": self._get_tags("Category"),
+            "Categories": self._get_tags("Category")+self._get_tags("Categories"),
             "Fandoms": self._get_tags("Fandom"),
             "Relationships": self._get_tags("Relationship"),
             "Characters": self._get_tags("Character"),
             "Additional Tags": self._get_tags("Additional Tag")
         }
+        
+        try:
+            to_return["Archive Warnings"].remove("Creator Chose Not To Use Archive Warnings")
+            to_return["Archive Warnings"].append("Choose Not To Use Archive Warnings")
+        except ValueError as e:
+            pass
 
         self._vprint('Done!')
         return to_return

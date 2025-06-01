@@ -10,6 +10,9 @@ from src.base_object import BaseObject
 from src.project_id import ProjectID
 
 
+
+
+
 class CompressedFileTracker:
     """ Compressed and raw versions of the same file(s), ex: wav VS mp3 audio, or svg VS png cover
     art """
@@ -56,6 +59,12 @@ class FileTracker(BaseObject):
     tracker = ""
     # Path to the DW file for accumulating podfics to xpost all at once
     dw_mass_xpost_file = join(wips_folder, "dw.txt")
+    # File formats
+    audio_compressed_exts = [".mp3"]
+    audio_raw_exts = [".wav", ".flac"]
+    cover_compressed_exts = [".png", ".jpg", ".jpeg"]
+    cover_raw_exts = [".svg"]
+    fic_exts = [".html"]
 
 
     def __init__(self, project_id:ProjectID, verbose:bool=True, folder:Optional[str]=None) -> None:
@@ -82,22 +91,23 @@ class FileTracker(BaseObject):
         if not exists(self.folder):
             raise FileNotFoundError(f"Couldn't find project folder {self.folder}")
         
-        def get_files(contains:str="", endswith:str="", folder:str=self.folder):
+        def get_files(contains:str="", endswith:List[str]=[""], folder:str=self.folder):
             """ Looks for files in the given folder which name contains and ends with the
             given strings """
             files = [
                 join(folder, file)
                 for file in listdir(folder)
-                if contains.lower() in file.lower() and file.endswith(endswith)
+                if contains.lower() in file.lower()
+                and any([file.endswith(end) for end in endswith])
             ]
             return sorted(files)
 
-        self.audio.compressed.unformatted = get_files(self._project_id.title_abr, ".mp3")
-        self.audio.raw.unformatted = get_files(self._project_id.title_abr, ".wav")
-        self.audio.compressed.formatted = get_files(self._project_id.safe_title, ".mp3")
-        self.audio.raw.formatted = get_files(self._project_id.safe_title, ".wav")
-        self.cover.compressed = get_files(self._project_id.title_abr, ".png")
-        self.cover.raw = get_files(self._project_id.title_abr, ".svg")
+        self.audio.compressed.unformatted = get_files(self._project_id.title_abr, FileTracker.audio_compressed_exts)
+        self.audio.raw.unformatted = get_files(self._project_id.title_abr, FileTracker.audio_raw_exts)
+        self.audio.compressed.formatted = get_files(self._project_id.safe_title, FileTracker.audio_compressed_exts)
+        self.audio.raw.formatted = get_files(self._project_id.safe_title, FileTracker.audio_raw_exts)
+        self.cover.compressed = get_files(self._project_id.title_abr, FileTracker.cover_compressed_exts)
+        self.cover.raw = get_files(self._project_id.title_abr, FileTracker.cover_raw_exts)
         self.fic = get_files(endswith=".html")
 
         # print("title abr", self._project_id.title_abr)

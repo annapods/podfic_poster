@@ -24,17 +24,17 @@ class PlaceholderValue(Exception):
         super().__init__(self.message)
 
 
-def not_placeholder_link(link:str, text:str) -> bool:
+def placeholder_link(link:str, text:str) -> bool:
     """ Detects actual links, as opposed to placeholders """
-    return not_placeholder_text(link) and not_placeholder_text(text)
+    return placeholder_text(link) or placeholder_text(text)
 
 def remove_placeholder_links(links:List[Tuple[str,str]]) -> List[Tuple[str,str]]:
     """ Removes the placeholder links """
-    return [(link, name) for link, name in links if not_placeholder_link(link, name)]
+    return [(link, name) for link, name in links if not placeholder_link(link, name)]
 
-def not_placeholder_text(text:str) -> bool:
+def placeholder_text(text:str) -> bool:
     """ Detects actual text, as opposed to placeholders """
-    return not text.startswith("__")
+    return text.startswith("__")
 
 
 class ProjectMetadata(UserDict, BaseObject):
@@ -71,7 +71,7 @@ class ProjectMetadata(UserDict, BaseObject):
         "Wordcount": "__WORDCOUNT",
         "Language": "__LANGUAGE",
         "Archive Warnings": [
-            "__Creator Chose Not To Use Archive Warnings",
+            "__Choose Not To Use Archive Warnings",
             "__Graphic Depictions Of Violence",
             "__Major Character Death",
             "__No Archive Warnings Apply",

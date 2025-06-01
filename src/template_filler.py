@@ -10,7 +10,7 @@ TODO tracker
 from typing import List, Tuple, Optional
 from gettext import translation
 from src.base_object import BaseObject
-from src.project_metadata import remove_placeholder_links, not_placeholder_link
+from src.project_metadata import remove_placeholder_links, placeholder_link
 from src.project import Project
 
 
@@ -255,7 +255,7 @@ class Ao3Template(Template):
             ])
         if credit:
             credit = [self.get_a_href(link, name) for link, name in credit \
-                if not_placeholder_link(link, name)]
+                if not placeholder_link(link, name)]
         content = self.get_li(credit)
         return self._get_sub_section(i18l("Additional credits"), content)
 
@@ -331,7 +331,7 @@ class Ao3Template(Template):
         """ Cover art """
         content = f'''<p align="center">{self.get_img(self._info["IA Cover Link"], width=250,
             img_alt_text=i18l("Cover art."), no_img_alt_text=i18l("Cover art welcome."))}'''
-        if not_placeholder_link(*(self._info["Cover Artist(s)"][0])):
+        if not placeholder_link(*(self._info["Cover Artist(s)"][0])):
             content += f'''<br>\n{i18l("Cover art by")} ''' \
                 + self.get_enum_links(self._info["Cover Artist(s)"])
         content += "</p>"

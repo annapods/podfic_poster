@@ -8,8 +8,9 @@ from os import rename
 from taglib import File as taglib_File
 from mutagen.mp3 import MP3
 from mutagen.id3 import APIC
+from src.project import Project
 from src.base_object import BaseObject
-from src.project_metadata import not_placeholder_text
+from src.project_metadata import placeholder_text
 
 
 def get_padded_track_number_string(track_number, total_tracks):
@@ -23,8 +24,7 @@ def get_padded_track_number_string(track_number, total_tracks):
 class AudioHandler(BaseObject):
     """ Handling audio files: renaming, updating metadata """
 
-    def __init__(self, project, verbose:bool=True) -> None:
-        super().__init__(verbose)
+    def load_project(self, project:Project) -> None:
         self._project_id = project.project_id
         self._files = project.files
         self._metadata = project.metadata
@@ -38,7 +38,7 @@ class AudioHandler(BaseObject):
 
         def get_enum(persons):
             """ Aux function, to string """
-            return ", ".join([pseud for _, pseud in persons if not_placeholder_text(pseud)])
+            return ", ".join([pseud for _, pseud in persons if not placeholder_text(pseud)])
 
         artists = get_enum(
             self._metadata["Creator/Pseud(s)"] \

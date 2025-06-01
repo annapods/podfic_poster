@@ -40,7 +40,7 @@ class FandomTaxonomy:
         This allows for one-to-many, many-to-one and many-to-many cases such as:
         - ["Batman (Comics)", "Batman - All Media Types"] -> ["Batman (Comics)"]
         - ["Women's Hockey RPF"] -> ["Hockey RPF", "Women's Hockey RPF"] """
-        assert False, "Implement in child class, please."
+        raise NotImplementedError()
 
 
 class FandomTaxonomySQLite(FandomTaxonomy):
@@ -270,7 +270,9 @@ class FandomTaxonomyCSV(FandomTaxonomy):
                 # input a number from the list
                 try:
                     n_option = int(choice)
-                    assert 0 <= n_option < len(options)
+                    if n_option < 0 or n_option >= len(options):
+                        print("Invalid choice")
+                        return pick_option(to_pick, based_on, options)
                 # anything else will be interpreted as a new value
                 except ValueError:
                     return choice

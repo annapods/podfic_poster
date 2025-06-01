@@ -3,26 +3,12 @@
 
 from argparse import ArgumentParser
 from sys import exit
-from src.base_object import DebugError
-from src.project_id import ProjectID
-from src.ao3_drafter import Ao3Poster
-from src.audio_handler import AudioHandler
-from src.dw_poster import DWPoster
-from src.gdrive_uploader import GDriveUploader
-from src.html_downloader import HTMLDownloader
-from src.ia_uploader import IAUploader
-from src.project_files_tracker import FileTracker
-from src.project_metadata import ProjectMetadata
-from src.tweet_poster import TweetPoster
-from src.tumblr_poster import TumblrPoster
-from src.project import Project, ProjectsTracker, TrackerError
 
-from contextlib import AbstractContextManager
-
+from src.project import Project, ProjectsTracker
 
 
 def get_id(id:str, tracker:ProjectsTracker) -> str:
-    """ If the ID is free, just returns it. If it's not, asks the user if that's okay, if not, asks for
+    """ If the ID is fjree, just returns it. If it's not, asks the user if that's okay, if not, asks for
     a new ID """
     keep_going = True
     while keep_going and tracker.id_exists(id):
@@ -36,6 +22,9 @@ def get_id(id:str, tracker:ProjectsTracker) -> str:
         else: id = choice
     return id
 
+
+def setup(project:Project) -> None:
+    pass
 
 if __name__ == "__main__":
     parser = ArgumentParser(prog="Podfic project setup!", description="Use once all the files are ready")
@@ -55,13 +44,17 @@ if __name__ == "__main__":
     raw_title = args.title if args.title else input("Full project title: ")
     link = args.link if args.link else input(
         "Link to parent work(s), input nothing to skip and not overwrite any metadata: ")
-    link_given = bool(args.link)
+    # link_given = bool(args.link)
+    # reset_metadata = link_given
+    link_given = False  # TODO DEBUG Cloudflare
+    reset_metadata = True
+
     try:
-        project = Project(raw_title, fandom_abr, link, download_parent=link_given, reset_metadata=link_given,
+        project = Project(raw_title, fandom_abr, link, download_parent=link_given, reset_metadata=True,
             verbose=verbose)
     except FileNotFoundError:
         project = Project(raw_title, fandom_abr, link, download_parent=link_given, reset_metadata=True,
             verbose=verbose)
     id = get_id(project.project_id.get_generic_id(), tracker)
     tracker.update_project(id, project, overwrite=True)
-    print("\nProject ID:", id)
+    print("\nSetup", id)

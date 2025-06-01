@@ -6,8 +6,25 @@ from sys import exit
 from cli.cli_utils import get_existing_id_and_project, get_kpop_or_not
 from src.dw_poster import DWPoster
 from src.tumblr_poster import TumblrPoster
-from src.project import ProjectsTracker
+from src.project import Project, ProjectsTracker
 from src.tweet_poster import TweetPoster
+
+
+def promo(project:Project) -> None:
+    # Drafting dw post
+    dw_poster = DWPoster(project, verbose)
+    dw_poster.save_dw_post_text()
+
+    # # Promoting on twitter
+    # tweet_poster = TweetPoster(project, verbose)
+    # tweet_poster.post_promo(is_kpop=get_kpop_or_not())
+
+    # Promoting on tumblr
+    tumblr_poster = TumblrPoster(project, verbose)
+    tumblr_poster.post_promo()
+
+    # Promoting on Mastodon and/or bsky
+    # TODO
 
 
 if __name__ == "__main__":
@@ -24,18 +41,6 @@ if __name__ == "__main__":
     verbose = not args.quiet
     tracker = ProjectsTracker(tracker_path="/home/anna/Music/tracker.json", verbose=verbose)
     id, project = get_existing_id_and_project(tracker, args.id, args.fandom, args.title, verbose)
+    print("\nPromoting", id)
+    promo(project)
     
-    # Drafting dw post
-    dw_poster = DWPoster(project, verbose)
-    dw_poster.save_dw_post_text()
-
-    # # Promoting on twitter
-    # tweet_poster = TweetPoster(project, verbose)
-    # tweet_poster.post_promo(is_kpop=get_kpop_or_not())
-
-    # Promoting on tumblr
-    tumblr_poster = TumblrPoster(project, verbose)
-    tumblr_poster.post_promo()
-
-    # Promoting on Mastodon and/or bsky
-    # TODO
