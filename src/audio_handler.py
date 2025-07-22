@@ -3,7 +3,7 @@
 
 from datetime import datetime
 from sys import exit as sys_exit
-from os.path import exists, join
+from os.path import exists, join, splitext
 from os import rename
 from taglib import File as taglib_File
 from mutagen.mp3 import MP3
@@ -153,20 +153,21 @@ class AudioHandler(BaseObject):
                 self._vprint(f"trying to rename {old} -> {new} but {new} already exists")
             return new
 
-        def rename_all(paths, ext):
+        def rename_all(paths):
             if len(paths) == 0:
                 return []
             if len(paths) == 1:
-                return [rename_one(paths[0], f'''{new_path_start}.{ext}''')]
+                return [rename_one(
+                    paths[0], new_path_start+splitext(paths[0])[1])]
             return [rename_one(
                 paths[i],
-                f'''{new_path_start} ''' \
+                    new_path_start
                     + f'''({get_padded_track_number_string(i+1, len(paths))})''' \
-                    + f'''.{ext}'''
+                    + splitext(paths[i])[1]
                 ) for i in range(len(paths))
             ]
 
-        rename_all(self._files.audio.compressed.unformatted, "mp3")
-        rename_all(self._files.audio.raw.unformatted, "wav")
+        rename_all(self._files.audio.compressed.unformatted)
+        rename_all(self._files.audio.raw.unformatted)
         self._files.update_file_paths()
         self._vprint("Done!\n")

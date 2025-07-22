@@ -37,6 +37,8 @@ class Project(BaseObject):
             self.files.update_file_paths()
         if self.files.fic and reset_metadata:
             # Extracting info from html
+            print("DEBUG HERE")
+            print(self.files.fic)
             self.metadata = ProjectMetadata(self.files, mode="from html", verbose=self._verbose)
         elif reset_metadata:
             # Creating metadata file from scratch

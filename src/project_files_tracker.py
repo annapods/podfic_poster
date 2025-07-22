@@ -100,6 +100,7 @@ class FileTracker(BaseObject):
                 if contains.lower() in file.lower()
                 and any([file.endswith(end) for end in endswith])
             ]
+            
             return sorted(files)
 
         self.audio.compressed.unformatted = get_files(self._project_id.title_abr, FileTracker.audio_compressed_exts)
@@ -108,7 +109,7 @@ class FileTracker(BaseObject):
         self.audio.raw.formatted = get_files(self._project_id.safe_title, FileTracker.audio_raw_exts)
         self.cover.compressed = get_files(self._project_id.title_abr, FileTracker.cover_compressed_exts)
         self.cover.raw = get_files(self._project_id.title_abr, FileTracker.cover_raw_exts)
-        self.fic = get_files(endswith=".html")
+        self.fic = get_files(endswith=[".html"])
 
         # print("title abr", self._project_id.title_abr)
         # print("full title", self._project_id.safe_title)

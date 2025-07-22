@@ -51,8 +51,9 @@ def post(
     if placeholder_text(project.metadata.get("IA Link")):
         load_ia_project(ia, project, force_ia_id)
         ia.upload_compressed_audio()
-        ia.upload_raw_audio()
+        # ia.upload_raw_audio()
         ia.upload_cover()
+
     tracker.update_project(id, project, overwrite=True)
 
     # Drafting ao3 post, trying several times in case of SSL handshake error

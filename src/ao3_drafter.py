@@ -21,12 +21,13 @@ LOGIN_URL = AO3_URL+'users/login'
 def ao3_draft(
         project:Project, max_ao3_drafting_attempts:int,
         handle_errors:Callable[[Exception, int], None],
-        cooldown:int, verbose:bool) -> None:
+        cooldown:int, verbose:bool,
+        recompute:bool=True) -> None:
     """ Draft ao3 post, trying several times in case of SSL handshake error """
     for i in range(max_ao3_drafting_attempts):
         if drafted(project): break
         try:
-            ao3_poster = Ao3Poster(project, verbose=verbose, recompute=True)
+            ao3_poster = Ao3Poster(project, verbose=verbose, recompute=recompute)
             while not drafted(project):
                 try: ao3_poster.draft_podfic()
                 except Exception as e:

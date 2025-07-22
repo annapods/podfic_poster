@@ -238,8 +238,8 @@ class ProjectMetadata(UserDict, BaseObject):
 
         domains = [
             ("Rating", ["Not Rated", "General Audiences", "Teen And Up Audiences", "Mature","Explicit"]),
-            ("Archive Warnings", ["Creator Chose Not To Use Archive Warnings", "Graphic Depictions Of Violence",
-                "Major Character Death", "No Archive Warnings Apply", "Rape/Non-Con", "Underage"]),
+            ("Archive Warnings", ["Choose Not To Use Archive Warnings", "Graphic Depictions Of Violence",
+                "Major Character Death", "No Archive Warnings Apply", "Rape/Non-Con", "Underage Sex"]),
             ("Categories", ["F/F", "F/M", "Gen", "M/M", "Multi", "Other"])]
         
 
