@@ -53,7 +53,6 @@ def post(
         ia.upload_compressed_audio()
         # ia.upload_raw_audio()
         ia.upload_cover()
-
     tracker.update_project(id, project, overwrite=True)
 
     # Drafting ao3 post, trying several times in case of SSL handshake error
