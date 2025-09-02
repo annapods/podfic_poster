@@ -162,7 +162,7 @@ class AudioHandler(BaseObject):
             return [rename_one(
                 paths[i],
                     new_path_start
-                    + f'''({get_padded_track_number_string(i+1, len(paths))})''' \
+                    + f''' ({get_padded_track_number_string(i+1, len(paths))})''' \
                     + splitext(paths[i])[1]
                 ) for i in range(len(paths))
             ]

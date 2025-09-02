@@ -119,7 +119,7 @@ class DWTemplate(Template):
                 heading(i18l("Characters")) + ', '.join(self._info['Characters']),
                 heading(i18l("Tags")) + ', '.join(self._info['Additional Tags']),
                 heading(i18l("Rating")) + self._info['Rating'],
-                heading(i18l("Content notes")) + self._info['Content Notes'],
+                heading(i18l("Content notes")) + str(self._info['Content Notes']),
                 heading_if_links(i18l("Additional credits"), self._info['Credits']),
                 heading(i18l("Audio length (incl. potential endnotes)")) \
                     + self._info['Audio Length'],
@@ -280,9 +280,9 @@ class Ao3Template(Template):
             i18l("Names"): self.get_enum(["Anna", "Annapods"], i18l("or")),
             i18l("Pronouns"): i18l("she or they"),
             i18l("Socials"): self.get_enum_links([
-                ("https://twitter.com/iamapodperson", "twitter"),
+                ("https://bsky.app/profile/annapods.bsky.social", "bsky"),
                 ("http://annapods.tumblr.com/", "tumblr"),
-                ("https://annapods.dreamwidth.org/", "dreamwidth")
+                ("https://discord.com/users/284426762853548033", "discord")
             ]),
             i18l("Email"): "annabelle.myrt@gmail.com"
         }
