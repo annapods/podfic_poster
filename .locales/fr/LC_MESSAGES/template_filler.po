@@ -64,7 +64,7 @@ msgstr "Personnages"
 
 #: template_filler.py:148
 msgid "Tags"
-msgstr "Tags"
+msgstr "Etiquettes"
 
 #: template_filler.py:149
 msgid "Rating"
@@ -138,8 +138,8 @@ msgid "Thanks"
 msgstr "Remerciements"
 
 #: template_filler.py:267
-msgid "Lemon rating stickers"
-msgstr "Autocollants citrons"
+msgid "Cover art stickers"
+msgstr "Autocollants de jaquette de couverture"
 
 #: template_filler.py:287
 msgid "Notes"

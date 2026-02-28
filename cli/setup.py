@@ -44,13 +44,12 @@ if __name__ == "__main__":
     raw_title = args.title if args.title else input("Full project title: ")
     link = args.link if args.link else input(
         "Link to parent work(s), input nothing to skip and not overwrite any metadata: ")
-    # link_given = bool(args.link)
-    # reset_metadata = link_given
-    link_given = False  # TODO DEBUG Cloudflare
-    reset_metadata = True
+
+    link_given = link is not None
+    reset_metadata = link_given
 
     try:
-        project = Project(raw_title, fandom_abr, link, download_parent=link_given, reset_metadata=True,
+        project = Project(raw_title, fandom_abr, link, download_parent=False, reset_metadata=True,
             verbose=verbose)
     except FileNotFoundError:
         project = Project(raw_title, fandom_abr, link, download_parent=link_given, reset_metadata=True,

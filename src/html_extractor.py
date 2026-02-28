@@ -57,7 +57,7 @@ class HTMLExtractor(BaseObject):
         """ Extracts and returns series titles """
         regex = r"""<dt>Series:<\/dt>
         <dd>Part [0-9]+ of
-<a href="http:\/\/archiveofourown.org\/series\/[0-9]*">(.*?)<\/a><\/dd>"""
+<a href="http[s]?:\/\/archiveofourown.org\/series\/[0-9]*">(.*?)<\/a><\/dd>"""
         series = [re_findall(regex, work) for work in self._html_works]
         series = remove_dup(flatten(series))
         return series
@@ -112,7 +112,7 @@ class HTMLExtractor(BaseObject):
         regex = fr"""<dt>{category}[s]*:<\/dt>"""+\
             r"""[\s\n]+<dd>(.*?)<\/dd>"""
         tag_soups = [soup for work in self._html_works for soup in re_findall(regex, work)]
-        regex = r"""<a href="http:\/\/archiveofourown.org\/tags\/(.*?)">(.*?)<\/a>"""
+        regex = r"""<a href="http[s]?:\/\/archiveofourown.org\/tags\/(.*?)">(.*?)<\/a>"""
         tags = [tag for soup in tag_soups for end_url, tag in re_findall(regex, soup)]
         tags = remove_dup(tags)
         return tags
@@ -120,7 +120,7 @@ class HTMLExtractor(BaseObject):
 
     def _get_urls(self):
         """ Extracts and returns work urls """
-        regex = r"""Posted originally on the <a href="http:\/\/archiveofourown.org\/">""" \
+        regex = r"""Posted originally on the <a href="http[s]?:\/\/archiveofourown.org\/">""" \
             + r"""Archive of Our Own<\/a> at <a href="(.*?)">"""
         urls = [re_findall(regex, work) for work in self._html_works]
         return  flatten(urls)

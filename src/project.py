@@ -23,27 +23,28 @@ class Project(BaseObject):
     """ A project! """
 
     def __init__(self, raw_title:str, fandom_abr:str, parent_link:Optional[str]="",
-        download_parent:bool=False, reset_metadata:bool=False, verbose:bool=True) -> None:
+        download_parent:bool=True, reset_metadata:bool=False, verbose:bool=True) -> None:
         """ Only really useful for projects, otherwise use ProjectsTracker.get_project """
         super().__init__(verbose)
 
         # Create project details and files
         self.project_id = ProjectID(fandom_abr, raw_title)
         self.files = FileTracker(self.project_id, self._verbose)
+        print(self.files.fic)  # DEBUG
 
         if parent_link and download_parent:
             # Downloading file
             HTMLDownloader(verbose=self._verbose).download_html(parent_link, self.files.folder)
             self.files.update_file_paths()
         if self.files.fic and reset_metadata:
-            # Extracting info from html
+            self._vprint("Extracting info from html")
             self.metadata = ProjectMetadata(self.files, mode="from html", verbose=self._verbose)
         elif reset_metadata:
-            # Creating metadata file from scratch
             # TODO might reformat those files
+            self._vprint("Creating metadata file from scratch")
             self.metadata = ProjectMetadata(self.files, mode="from scratch", verbose=self._verbose)
         else:
-            # Extracting info from yaml file
+            self._vprint("Extracting info from yaml file")
             self.metadata = ProjectMetadata(self.files, mode="from yaml", verbose=self._verbose)
 
 

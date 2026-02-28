@@ -18,7 +18,7 @@ Translations can be organized in domains. This is useful for big translation pro
 
 Xgettext can gather all the keys used in a file (or files) and create a template translation file:
 ```shell
-FILE=template_filler.py
+FILE=src/template_filler.py
 xgettext -d $DOMAIN --keyword=i18l -o $DIR/$DOMAIN.pot $FILE --from-code=UTF-8
 ```
 
@@ -42,3 +42,41 @@ Then it can be merged with the existing translation files without damaging them:
 Translate the new sentences (and potentially delete the unused ones? not sure), then compile again: `msgfmt -o $DIR/$LANG/LC_MESSAGES/$DOMAIN.mo $DIR/$LANG/LC_MESSAGES/$DOMAIN.po`
 
 Done!
+
+# TL;DR
+
+## Setup
+```shell
+DIR=.locales
+DOMAIN=template_filler
+```
+
+## If you change the strings in the i18l function in `src/template_filler.py`
+```shell
+FILE=src/template_filler.py
+xgettext -d $DOMAIN --keyword=i18l -o $DIR/$DOMAIN.pot $FILE --from-code=UTF-8
+```
+For each language, get the language code, replace `fr` with that code.
+```shell
+LANG=fr
+msgmerge --update $DIR/$LANG/LC_MESSAGES/$DOMAIN.po $DIR/$DOMAIN.pot
+```
+Go to next section.
+
+## If you update a translation
+Update the .po file. Get the language code, replace `fr` with that code.
+```shell
+LANG=fr
+msgfmt -o $DIR/$LANG/LC_MESSAGES/$DOMAIN.mo $DIR/$LANG/LC_MESSAGES/$DOMAIN.po
+```
+
+## If you want to add a language
+Get the language code and replace `fr` with that code.
+```shell
+LANG=fr
+cp $DIR/$DOMAIN.pot $DIR/$LANG/LC_MESSAGES/$DOMAIN.po
+```
+Fill the template.
+```shell
+msgfmt -o $DIR/$LANG/LC_MESSAGES/$DOMAIN.mo $DIR/$LANG/LC_MESSAGES/$DOMAIN.po
+```

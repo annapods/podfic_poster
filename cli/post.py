@@ -97,6 +97,6 @@ if __name__ == "__main__":
     downtime = 60
 
     print("\Posting", id)
-    post(project, gd, ia, audio, max_ao3_drafting_attempts, downtime, False, verbose)
+    post(tracker, project, gd, ia, audio, max_ao3_drafting_attempts, downtime, False, verbose=verbose)
     # Saving tracker info
     tracker.update_project(id, project, overwrite=True)

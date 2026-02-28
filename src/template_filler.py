@@ -46,7 +46,9 @@ class Template(BaseObject):
         """ Joins items in a string with commas and 'and' """
         if not items: return ""
         if len(items) == 1: return items[-1]
-        conj = i18l(conj)
+        if conj == "and": conj = i18l("and")
+        elif conj == "or": conj = i18l("or")
+        else: Template._vprint("Unknown word "+conj+"! Will not be able to translate! Cf doc/TRANSLATEME.md")
         if len(items) == 2: return " ".join([items[-2], conj, items[-1]])
         return ', '.join(items[:-2] + [" ".join([items[-2], conj, items[-1]])])
 
@@ -250,8 +252,8 @@ class Ao3Template(Template):
         credit = self._info["Credits"]
         if self._info["Stickers"]:
             credit.append([
-                "https://www.dropbox.com/sh/m594efbyu3kjrse/AACKZKGpiS0UqQZIdTXFSKoSa?dl=0",
-                i18l("Lemon rating stickers")
+                "https://archive.org/details/anna-stickers",
+                i18l("Cover art stickers")
             ])
         if credit:
             credit = [self.get_a_href(link, name) for link, name in credit \
