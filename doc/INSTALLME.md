@@ -31,6 +31,16 @@ git clone https://github.com/annapods/podfic_poster.git
 
 Feel free to create a branch if you want, or whatever else.
 
+### Save modifications
+
+```shell
+git status
+git add [insert files here]
+git commit -m ["name of commit"] -m ["description"]
+git push
+git pull
+```
+
 ## Path to projects
 
 In src/project_files_tracker.py, edit the path to the parent folder of all the project folders.
