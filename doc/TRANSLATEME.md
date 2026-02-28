@@ -25,7 +25,7 @@ xgettext -d $DOMAIN --keyword=i18l -o $DIR/$DOMAIN.pot $FILE --from-code=UTF-8
 A few explanations:
 - `--keyword=i18l` tells it what to look for. It'll gather all* the strings passed as arguments to that keyword, for ex in `i18l("Translate translate")`.
 - *xgettext can't seem to find those calls in f-strings.
-- `--from-code=UTF-8` doesn't work, might have to change it by hand.
+- `--from-code=UTF-8` doesn't work, might have to change it by hand, from `charset=CHARSET` to `charset=UTF-8`.
 
 ## Adding a new language
 
@@ -56,6 +56,7 @@ DOMAIN=template_filler
 FILE=src/template_filler.py
 xgettext -d $DOMAIN --keyword=i18l -o $DIR/$DOMAIN.pot $FILE --from-code=UTF-8
 ```
+Open the .pot file and change `charset=CHARSET` to `charset=UTF-8`.
 For each language, get the language code, replace `fr` with that code.
 ```shell
 LANG=fr
@@ -64,7 +65,8 @@ msgmerge --update $DIR/$LANG/LC_MESSAGES/$DOMAIN.po $DIR/$DOMAIN.pot
 Go to next section.
 
 ## If you update a translation
-Update the .po file. Get the language code, replace `fr` with that code.
+Update the .po file with translations.
+Get the language code, replace `fr` with that code.
 ```shell
 LANG=fr
 msgfmt -o $DIR/$LANG/LC_MESSAGES/$DOMAIN.mo $DIR/$LANG/LC_MESSAGES/$DOMAIN.po

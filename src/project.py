@@ -30,7 +30,6 @@ class Project(BaseObject):
         # Create project details and files
         self.project_id = ProjectID(fandom_abr, raw_title)
         self.files = FileTracker(self.project_id, self._verbose)
-        print(self.files.fic)  # DEBUG
 
         if parent_link and download_parent:
             # Downloading file

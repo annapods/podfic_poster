@@ -6,7 +6,7 @@ NOTE had to add the re.DOTALL flag in _get_summaries, might have to everywhere e
  """
 
 from re import search as re_search, findall as re_findall, DOTALL
-from src.base_object import BaseObject
+from src.base_object import BaseObject, DebugError
 
 
 def flatten(list_of_lists):
@@ -91,7 +91,7 @@ class HTMLExtractor(BaseObject):
         wordcounts = []
         for work in self._html_works:
             found = re_search(regex, work)
-            if found is None: self._vprint("DEBUG wordcount search failed")
+            if found is None: raise DebugError("Wordcount search failed")
             wordcount = found.group("millions") if not found.group("millions") is None else ""
             wordcount += found.group("thousands") if not found.group("thousands") is None else ""
             wordcount += found.group("units")

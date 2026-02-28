@@ -9,7 +9,7 @@ TODO tracker
 
 from typing import List, Tuple, Optional
 from gettext import translation
-from src.base_object import BaseObject
+from src.base_object import BaseObject, DebugError
 from src.project_metadata import remove_placeholder_links, placeholder_link
 from src.project import Project
 
@@ -19,7 +19,7 @@ from src.project import Project
 # attribute
 def i18l(_:str) -> str:
     """ Placeholder """
-    return "NOPE, gotta debug, sorry!"
+    raise DebugError("Translation isn't working...")
 
 
 class Template(BaseObject):
