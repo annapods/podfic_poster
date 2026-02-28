@@ -19,7 +19,8 @@ requests  # ==2.25.1
 six==1.16.0
 soupsieve==2.2.1
 tqdm==4.66.3
-urllib3==2.5.0
+# urllib3==2.5.0
+urllib3>=2.6.3
 
 # ao3-poster
 # a new minor update to markupsafe changed the name of a function
