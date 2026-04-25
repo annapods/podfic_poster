@@ -7,41 +7,80 @@ from re import compile as re_compile
 from time import sleep
 from bs4 import SoupStrainer, BeautifulSoup
 from requests import Response, Session
-from typing import Callable, Optional, List, Tuple, Dict
+from typing import Any, Callable, Optional, List, Tuple, Dict
 from src.template_filler import Ao3Template
 from src.base_object import BaseObject, DebugError
 from src.project_metadata import placeholder_link, placeholder_text
 from src.project import Project
+from cli.cli_utils import handle_error
 
 
-AO3_URL = 'https://archiveofourown.org/'
+AO3_URL = 'https://archiveofourown.gay/'
 LOGIN_URL = AO3_URL+'users/login'
+WORKS_URL = AO3_URL+"works"
 
 
 def ao3_draft(
-        project:Project, max_ao3_drafting_attempts:int,
-        handle_errors:Callable[[Exception, int], None],
+        project:Project, max_tries_root:int,
         cooldown:int, verbose:bool,
+        handle_error:Callable[[Exception], None]=handle_error,
         recompute:bool=True) -> None:
     """ Draft ao3 post, trying several times in case of SSL handshake error """
-    for i in range(max_ao3_drafting_attempts):
-        if drafted(project): break
+    def evaluate_result() -> bool: return not drafted(project)
+
+    def get_poster():
+        ao3_poster = Ao3Poster(project, verbose=verbose, recompute=recompute)
+        def draft(): ao3_poster.draft_podfic()
+        try_again(
+            draft, evaluate_result, handle_error,
+            cooldown=cooldown, max_tries=max_tries_root)
+
+    try_again(
+        get_poster, evaluate_result, handle_error,
+        cooldown=cooldown, max_tries=max_tries_root)
+ 
+def always_true() -> bool: return True
+
+def try_again(
+        function:Callable,
+        evaluate_result:Callable[[Any],bool]=always_true,
+        handle_error:Callable[[Exception], None]=handle_error,
+        cooldown:int=60, max_tries:int=10) -> Any:
+    res, found = None, None
+    for i in range(max_tries):
+        if found: break
         try:
-            ao3_poster = Ao3Poster(project, verbose=verbose, recompute=recompute)
-            while not drafted(project):
-                try: ao3_poster.draft_podfic()
-                except Exception as e:
-                    handle_errors(e, int(cooldown/3))
-                    sleep(int(cooldown/3))
+            res = function()
+            found = evaluate_result(res)
         except Exception as e:
-            handle_errors(e, cooldown)
+            handle_error(e)
             sleep(cooldown)
+    return res
 
 
-works_page = "https://archiveofourown.org/works"
 def drafted(project:Project) -> bool:
     link = project.metadata.get("Podfic Link")
-    return link != works_page and works_page in link
+    return link != WORKS_URL and WORKS_URL in link
+
+def validate_ao3_response(response:Response, form_id:str=None) -> bool:
+    if "525: SSL handshake failed" in response.text:
+        raise Ao3DrafterError(f"Code {response.status_code} - SSL handshake failed...")
+    if response.url == AO3_URL+"auth_error":
+        raise Ao3DrafterError(f"Code {response.status_code} - Ao3 session expired")
+    if response.url == AO3_URL+"lost_cookie":
+        raise Ao3DrafterError(f"Code {response.status_code} - " +\
+                              "Lost ao3 cookie, session expired")
+    if response.text == "":
+        raise Ao3DrafterError(f"Code {response.status_code} - Failed to get Ao3 page...")
+    if "The page you were looking for doesn" in response.text:
+        raise Ao3DrafterError(f"Page doesn't exist...")
+    if response.status_code == 500:
+        raise Ao3DrafterError("Received server error: " +str(response.content))
+    if "The password or user name you entered doesn't match our records." in response.text:
+        raise Ao3DrafterError("Username and/or password are wrong...")
+    # if form_id and form_id not in response.text:
+    #     raise Ao3DrafterError(f"Form id {form_id} not in Ao3 page...")
+    return True
 
 
 class Ao3DrafterError(Exception): pass
@@ -61,30 +100,30 @@ class Ao3Poster(BaseObject):
         self._get_session()
         self._get_new_work_codes_and_auth_token()
 
-    @staticmethod
-    def _validate_response_url(response:Response) -> None:
-        """ Raises exceptions if the response indicates a lost session or some other problem """
-        url = response.headers['Location'] if response.status_code == 302 else response.url
-        if url == LOGIN_URL: raise Ao3DrafterError("Ao3 login required")
-        if url == AO3_URL+"auth_error": raise Ao3DrafterError("Ao3 session expired")
-        if url == AO3_URL+"lost_cookie": raise Ao3DrafterError("Lost ao3 cookie, session expired")
 
-    @staticmethod
-    def _get_authenticity_token(text:str, form_id:str) -> str:
-        """ Extracts the authenticity token from the page """
-        if text == None or text == "": raise ValueError(f"No text")
+    def _get_authenticity_token(
+            self, url:str, form_id:str,
+            allow_redirects:bool=True, return_response:bool=False
+            ) -> str|Tuple[str, Response]:
+        """ Extracts the authenticity token from an Ao3 page """
+        response = self.session.get(url, allow_redirects=allow_redirects)
+        # Check response
+        validate_ao3_response(response, form_id)
+        # Fetch token
         strainer = SoupStrainer(id=form_id)
-        soup = BeautifulSoup(text, 'lxml', parse_only=strainer)
-        if soup is None:
-            print("DEBUG", text)
-            raise Ao3DrafterError("???")
-        found = soup.find(attrs={'name': 'authenticity_token'})
-        if found == None or found == "":
-            print("DEBUG !! soup:", found, end=", ")
-            if "525: SSL handshake failed" in text:
-                raise Ao3DrafterError("525: SSL handshake failed")
-            else: print(f"DEBUG ! type soup={type(soup)}, soup={soup}->{soup.prettify()}, text={text}")
-        return found['value']
+        soup = BeautifulSoup(response.text, 'lxml', parse_only=strainer)
+        found = soup.find("input", attrs={'name': 'authenticity_token'})
+        if not found:
+            raise Ao3DrafterError("Couldn't find authenticity token in page??")
+        # Check and return token
+        if found['value'] == "":
+            raise Ao3DrafterError("Authenticity token not in Ao3 page")
+        if return_response:
+            return found['value'], response
+        else:
+            return found['value']
+
+
 
     @staticmethod
     def _get_languages(text:str) -> Dict[str,str]:
@@ -114,64 +153,68 @@ class Ao3Poster(BaseObject):
         return {pseud: user_id}
 
 
-    def _get_session(self) -> None:
+    def _get_session(self, max_tries:int=5, cooldown:int=30) -> None:
         """ Fetches credentials and logs in to an ao3 session. """
         self._vprint("Logging in to ao3...", end=" ")
+
         # Ao3 credentials should be saved in the settings file
         with open("settings.json", "r") as file:
             settings = js_load(file)
-            # If they are not, the first attempt at loging in will fail and the program will ask in cli
             username = settings.get("ao3_username", "")
             password = settings.get("ao3_password", "")
 
-        session = Session()
+        self.session = Session()
         # AO3 blocks python-requests by default so we need to fake a different user agent
-        session.headers.update({'User-Agent':
+        self.session.headers.update({'User-Agent':
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) ' +\
             'AppleWebKit/537.36 (KHTML, like Gecko) ' +\
             'Chrome/39.0.2171.95 Safari/537.36',  # noqa: E501
         })
 
-        # Authenticity token for log in
-        response = session.get(LOGIN_URL)
-        authenticity_token = Ao3Poster._get_authenticity_token(response.text, 'loginform')
+        # Several tries for both getting the page and getting the token
+        def get_login_token() -> str:
+            return self._get_authenticity_token(
+                LOGIN_URL, "loginform", allow_redirects=True)
 
-        # Log in
-        login_data = {
-            'utf8': '✓',
-            'authenticity_token': authenticity_token,
-            'user[login]': username,
-            'user[password]': password,
-            'commit': 'Log In',
-        }
-        response = session.post(LOGIN_URL, login_data, allow_redirects=False)
-
-        # Check for one cause of failure: wrong credentials
-        if "The password or user name you entered doesn't match our records." in response.text:
-            # Use the CLI interface to ask the user for input
-            settings["ao3_username"] = input("ao3 username? ")
-            settings["ao3_password"] = input("ao3 password? ")
-            # Save the credentials and try again
-            with open("settings.json", 'w') as file: js_dump(settings, file)
-            session = self._get_session()
-        # Other types of failure are not checked and will probably raise an exception later on
+        def log_in():
+            self._vprint("Logging in...", end=" ")
+            login_data = {
+                'utf8': '✓',
+                'authenticity_token': try_again(
+                    get_login_token, always_true, cooldown=cooldown, max_tries=max_tries),
+                'user[login]': username,
+                'user[password]': password,
+                'user[remember_me]': 1,
+                'commit': 'Log in',
+            }
+            res = self.session.post(LOGIN_URL, data=login_data, allow_redirects=True)
+            return res
         
-        self.session = session
+        res = try_again(
+            log_in, validate_ao3_response, cooldown=cooldown, max_tries=max_tries)
+        
         self._vprint("Done!")
 
 
-    def _get_new_work_codes_and_auth_token(self) -> None:
+    def _get_new_work_codes_and_auth_token(self, max_tries:int=50, cooldown:int=30) -> None:
         """ Fetches the info necessary to post a new work:
         - authenticity token for new work
         - language codes
         - own pseud codes """
         # Get an authenticity token
-        response = self.session.get(AO3_URL+'works/new', allow_redirects=False)
-        Ao3Poster._validate_response_url(response)
-        self.new_work_auth = Ao3Poster._get_authenticity_token(response.text, 'work-form')
+        self._vprint("Getting auth token to create new works...", end=" ")
+        url = AO3_URL+"works/new"
+        def function(): return self._get_authenticity_token(url, "work-form", False, True)
+        def evaluate_token(token:str) -> bool: return bool(token)
+        def handle_error(e:Exception): self._vprint(str(e))
+        
+        self.new_work_auth, ao3_response = try_again(
+            function, evaluate_token, handle_error,
+            cooldown=cooldown, max_tries=max_tries)
+
         # Get language and own pseud codes
-        self.language_codes = Ao3Poster._get_languages(response.text)
-        self.own_pseud_codes = Ao3Poster._get_own_pseuds(response.text)
+        self.language_codes = Ao3Poster._get_languages(ao3_response.text)
+        self.own_pseud_codes = Ao3Poster._get_own_pseuds(ao3_response.text)
 
 
     def draft_podfic(self) -> None:
@@ -182,33 +225,44 @@ class Ao3Poster(BaseObject):
 
         # Post formatted data
         post_data = self._get_ao3_data()
-        post_url = AO3_URL+'works'
-        response = self.session.post(post_url, post_data, allow_redirects=False)
-        # Validate response
-        if response.status_code == 500:
-            raise Ao3DrafterError("Received server error: " +str(response.content))
-        Ao3Poster._validate_response_url(response)
-        # Raise errors
-        if response.url == post_url:
-            errors = []
+
+        def validate_draft_response(response:Response) -> bool:
+            validate_ao3_response(response)
+            if response.url.endswith("/preview"): return True
             soup = BeautifulSoup(response.content, 'lxml')
-            error = soup.find(id='error')
-            if error: raise Ao3DrafterError(f"Errors while posting: {errors}, {error}")
+            if not response.url == WORKS_URL:
+                # raise Ao3DrafterError(
+                #     f"Got redirected while trying to post to {response.url}")
+                print("DEBUG got redirected to "+response.url+"??")
+            if "error" in response.text:
+                error = soup.find(id='error')
+                raise Ao3DrafterError(f"Errors while posting: {error}")
+            if "new_work" not in response.text:
+                raise Ao3DrafterError("No new work form in page?")
             new_work_form = soup.find('form', id='new_work')
             if new_work_form:
-                invalid_pseuds = new_work_form.find('h4', text=re_compile(r'These pseuds are invalid:'))
+                invalid_pseuds = new_work_form.find(
+                    'h4', text=re_compile(r'These pseuds are invalid:'))
                 if invalid_pseuds:
-                    raise Ao3DrafterError(f"Invalid ao3 pseuds listed as authors: {invalid_pseuds}")
+                    raise Ao3DrafterError(
+                        f"Invalid ao3 pseuds listed as authors: {invalid_pseuds}")
             else:
-                self._vprint("draft_podfic: new_work_form == False")  # raise DebugError("draft_podfic: new_work_form == False")
-        else:
-            self._vprint("draft_podfic: response.url != post_url")  # raise DebugError("draft_podfic: response.url != post_url")
-        # Save new work link
-        link = response.headers['Location'] if response.status_code == 302 else response.url
+                print("draft_podfic: new_work_form == False")
+                # raise DebugError("draft_podfic: new_work_form == False")
+
+
+        def try_draft() -> str: return self.session.post(
+                    WORKS_URL, post_data, allow_redirects=True)
+
+        response = try_again(try_draft, evaluate_result=validate_draft_response)
+
+        link = response.headers['Location'] if response.status_code == 302 \
+                else response.url
+        link = link.replace("/preview", "")
+        
         self._metadata.update_md(category="Podfic Link", content=link)
         # Log out
         self.session.get(AO3_URL+'users/logout')
-
         self._vprint("done!\n")
 
 
@@ -288,6 +342,7 @@ class Ao3Poster(BaseObject):
             ('preview_button', 'Preview'),  # Trigger a preview
             ('work[parent_attributes][translation]', '0'),  # Without this attribute, AO3 will try to
             # set the translation column to NULL if the work is a remix of another work
+            ('commit', "Save Draft")
         ]
 
         return post_data

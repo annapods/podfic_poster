@@ -9,15 +9,8 @@ from src.audio_handler import AudioHandler
 from src.gdrive_uploader import GDriveUploader
 from src.ia_uploader import IAUploader, IAUploaderError
 from src.project import Project, ProjectsTracker
-from cli.cli_utils import get_existing_id_and_project, get_ia_id
+from cli.cli_utils import get_existing_id_and_project, get_ia_id, handle_error
 
-
-def handle_ao3_draft_errors(e:Exception, cooldown:int=60) -> None:
-    """ Prints details if not SSL handshake error, sleeps for cooldown seconds """
-    if "525" in str(e): print(f"SSL ERROR ENCOUNTERED - will try again in {cooldown}")
-    else:
-        print(f"ERROR ENCOUNTERED - will try again in {cooldown} - {e}")
-        print_exc()
 
 def load_ia_project(ia:IAUploader, project:Project, force_ia_id:bool) -> None:
     try: ia.load_project(project, None, force_ia_id)
@@ -28,7 +21,7 @@ def load_ia_project(ia:IAUploader, project:Project, force_ia_id:bool) -> None:
 def post(
         tracker:ProjectsTracker, project:Project, gd:GDriveUploader,
         ia:IAUploader, audio:AudioHandler,
-        max_ao3_drafting_attempts:int, downtime:int, force_ia_id, verbose:bool) -> None:
+        max_tries_root:int, downtime:int, force_ia_id, verbose:bool) -> None:
     
     # Adding posting date to metadata
     project.metadata.add_posting_date()
@@ -58,8 +51,8 @@ def post(
     # Drafting ao3 post, trying several times in case of SSL handshake error
     if not drafted(project):
         ao3_draft(
-            project, max_ao3_drafting_attempts,
-            handle_ao3_draft_errors, downtime, verbose)
+            project, max_tries_root,
+            handle_error, downtime, verbose)
         tracker.update_project(id, project, overwrite=True)
 
     # Uploading project info to gdrive and ia
@@ -69,6 +62,7 @@ def post(
         load_ia_project(ia, project, force_ia_id)
         ia.update_description()
         ia.upload_metadata()
+        tracker.update_project(id, project, overwrite=True)
 
 
 
@@ -93,10 +87,10 @@ if __name__ == "__main__":
     ia = IAUploader()
     audio = AudioHandler()
 
-    max_ao3_drafting_attempts = 15
+    max_tries_root = 5
     downtime = 60
 
     print("\Posting", id)
-    post(tracker, project, gd, ia, audio, max_ao3_drafting_attempts, downtime, False, verbose=verbose)
+    post(tracker, project, gd, ia, audio, max_tries_root, downtime, False, verbose=verbose)
     # Saving tracker info
     tracker.update_project(id, project, overwrite=True)

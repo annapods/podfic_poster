@@ -4,6 +4,13 @@ from src.ia_uploader import IAUploaderError
 from src.project import Project, ProjectsTracker
 
 
+
+def handle_error(e:Exception) -> None:
+    """ Prints details """
+    # if "525" in str(e): print(f"SSL ERROR ENCOUNTERED")
+    print(f"ERROR ENCOUNTERED - {e}")
+    # print_exc()
+
 def check_id(id:str, tracker:ProjectsTracker) -> str:
     """ If the ID is free, just returns it. If it's not, asks the user if that's okay, if not, asks for
     a new ID """

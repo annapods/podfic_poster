@@ -7,7 +7,6 @@ class DebugError(Exception):
     def __init__(self, message) -> None:
         super().__init__("DEBUG "+message)
 
-
 class BaseObject:
     """ Base class for everything """
 

@@ -41,14 +41,14 @@ if to_post:
     gd = GDriveUploader()
     ia = IAUploader()
     audio = AudioHandler()
-    max_ao3_drafting_attempts = 20
+    max_tries_root = 10
 downtime = 180
 for fandom, title, _ in to_post:
     project = Project(title, fandom, None, download_parent=False, reset_metadata=False, verbose=verbose)
     id = project.project_id.get_generic_id()
     tracker.update_project(id, project, overwrite=True)
     post(
-        tracker, project, gd, ia, audio, max_ao3_drafting_attempts,
+        tracker, project, gd, ia, audio, max_tries_root,
         downtime, True, verbose)
     tracker.update_project(id, project, overwrite=True)
 
