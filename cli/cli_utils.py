@@ -8,6 +8,8 @@ from src.project import Project, ProjectsTracker
 def handle_error(e:Exception) -> None:
     """ Prints details """
     # if "525" in str(e): print(f"SSL ERROR ENCOUNTERED")
+    if type(e) is not Exception:
+        print("DEBUG !!! type of exception is not exception", type(e), e)
     print(f"ERROR ENCOUNTERED - {e}")
     # print_exc()
 

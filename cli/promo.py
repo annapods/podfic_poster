@@ -43,4 +43,5 @@ if __name__ == "__main__":
     id, project = get_existing_id_and_project(tracker, args.id, args.fandom, args.title, verbose)
     print("\nPromoting", id)
     promo(project)
+    tracker.update_project(id, project, overwrite=True)
     

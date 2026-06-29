@@ -251,10 +251,11 @@ class Ao3Template(Template):
         """ Credits section """
         credit = self._info["Credits"]
         if self._info["Stickers"]:
-            credit.append([
+            sticker_credit = [
                 "https://archive.org/details/anna-stickers",
                 i18l("Cover art stickers")
-            ])
+            ]
+            if sticker_credit not in credit: credit.append(sticker_credit)
         if credit:
             credit = [self.get_a_href(link, name) for link, name in credit \
                 if not placeholder_link(link, name)]
